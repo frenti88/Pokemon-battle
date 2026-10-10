@@ -113,7 +113,7 @@ G.Enemies = (() => {
 
   /** Todos los candidatos de un tramo (sin legendarios ni míticos). */
   function candidates(tier) {
-    return G.DEX.filter(p => p.rarity < 5 && p.bst >= tier.bst[0] && p.bst <= tier.bst[1] && G.SPRITE_META[p.dex]);
+    return G.DEX.filter(p => !p.disabled && p.rarity < 5 && p.bst >= tier.bst[0] && p.bst <= tier.bst[1] && G.SPRITE_META[p.dex]);
   }
 
   // ---------------- elenco de la run ----------------
@@ -155,11 +155,12 @@ G.Enemies = (() => {
     const used = new Set();
     const slots = (G.Balance && G.Balance.get('bossSlots')) || BOSS_SLOTS;
     bosses = slots.map(slot => {
-      const ok = p => !p.leg && G.SPRITE_META[p.dex] && !used.has(p.dex);
+      const ok = p => !p.disabled && !p.leg && G.SPRITE_META[p.dex] && !used.has(p.dex);
       let pool = G.DEX.filter(p => ok(p) && p.bst >= slot.bst[0] && p.bst <= slot.bst[1]);
-      if (!pool.length) pool = G.DEX.filter(p => ok(p) && p.bst >= 580);
+      if (!pool.length) pool = G.DEX.filter(p => ok(p) && p.bst >= 520);
+      if (!pool.length) pool = G.DEX.filter(p => ok(p));
       const p = G.U.pick(pool);
-      used.add(p.dex);
+      if (p) used.add(p.dex);
       return {
         at: slot.at, dex: p.dex, name: p.name,
         // (Desde 2026-10-10 más duros: ×1,35 de vida y ×1,2 de daño.)

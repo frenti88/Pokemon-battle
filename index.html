@@ -4,8 +4,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>PokéSurvivor – Juego Pokémon gratis online estilo Survivor.io</title>
-<meta name="description" content="Sobrevive a hordas de Pokémon con tu compañero en este fan game gratis para navegador y móvil: 966 Pokémon, shinies, legendarios y cooperativo con amigos. Sin descargas ni anuncios.">
+<title>Super Batalla Pokémon – Juego Pokémon gratis online</title>
+<meta name="description" content="Sobrevive a hordas de Pokémon con tu compañero en este fan game gratis para navegador y móvil: 150 Pokémon originales, shinies, legendarios y cooperativo con amigos. Sin descargas ni anuncios.">
 
 <link rel="canonical" href="https://pokesurvivor.com/">
 <meta name="robots" content="index, follow, max-image-preview:large">
@@ -13,17 +13,17 @@
 <meta name="color-scheme" content="dark">
 <!-- Compartir en redes (WhatsApp, Discord, Twitter/X...) -->
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="PokéSurvivor">
+<meta property="og:site_name" content="Super Batalla Pokémon">
 <meta property="og:locale" content="es_ES">
 <meta property="og:url" content="https://pokesurvivor.com/">
-<meta property="og:title" content="PokéSurvivor – Sobrevive a las hordas Pokémon">
-<meta property="og:description" content="Fan game gratis para navegador y móvil: 966 Pokémon, shinies, legendarios y cooperativo hasta 4 amigos. Sin descargas ni anuncios.">
+<meta property="og:title" content="Super Batalla Pokémon – Sobrevive a las hordas Pokémon">
+<meta property="og:description" content="Fan game gratis para navegador y móvil: 150 Pokémon originales, shinies, legendarios y cooperativo hasta 4 amigos. Sin descargas ni anuncios.">
 <meta property="og:image" content="https://pokesurvivor.com/assets/og-image.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="PokéSurvivor: un Pokémon rodeado de hordas en un mapa pixel art">
+<meta property="og:image:alt" content="Super Batalla Pokémon: un Pokémon rodeado de hordas en un mapa pixel art">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="PokéSurvivor – Sobrevive a las hordas Pokémon">
+<meta name="twitter:title" content="Super Batalla Pokémon – Sobrevive a las hordas Pokémon">
 <meta name="twitter:description" content="Fan game gratis para navegador y móvil, con cooperativo hasta 4. Sin descargas ni anuncios.">
 <meta name="twitter:image" content="https://pokesurvivor.com/assets/og-image.jpg">
 <script>window.PS_PAGES = true;</script>
@@ -34,7 +34,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="PokéSurvivor">
+<meta name="apple-mobile-web-app-title" content="Super Batalla Pokémon">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="preload" href="assets/fonts/PixelifySans.ttf" as="font" type="font/ttf" crossorigin>
 
@@ -47,13 +47,13 @@
       "@type": "WebSite",
       "@id": "https://pokesurvivor.com/#web",
       "url": "https://pokesurvivor.com/",
-      "name": "PokéSurvivor",
+      "name": "Super Batalla Pokémon",
       "inLanguage": "es"
     },
     {
       "@type": ["VideoGame", "WebApplication"],
       "@id": "https://pokesurvivor.com/#juego",
-      "name": "PokéSurvivor",
+      "name": "Super Batalla Pokémon",
       "url": "https://pokesurvivor.com/",
       "description": "Fan game gratuito de supervivencia (bullet heaven, estilo Survivor.io) con Pokémon: elige compañero, sobrevive a hordas, sube de nivel, evoluciona tus ataques, enfréntate a legendarios en grietas y juega en cooperativo con hasta 4 amigos.",
       "image": "https://pokesurvivor.com/assets/og-image.jpg",
@@ -78,13 +78,13 @@
 
 <canvas id="game"></canvas>
 <!-- En móvil se juega en horizontal -->
-<div id="rotate" class="hidden"><div class="box center"><div id="rotate-ico"></div><h2>Gira el móvil</h2><p class="sub">PokéSurvivor se juega en horizontal.</p></div></div>
+<div id="rotate" class="hidden"><div class="box center"><div id="rotate-ico"></div><h2>Gira el móvil</h2><p class="sub">Super Batalla Pokémon se juega en horizontal.</p></div></div>
 
 <!-- ====== Inicio: login / registro / invitado ====== -->
 <section id="scr-login" class="scr hidden">
   <div class="box" style="width:min(420px,100%)">
     <div class="logo">
-      <div class="t1">PokéSurvivor</div>
+      <div class="t1">Super Batalla Pokémon</div>
       <div class="t2">Mundo Misterioso</div>
     </div>
     <p class="login-tag">Sobrevive a las hordas con tu compañero Pokémon · gratis, en PC y móvil</p>
@@ -113,27 +113,95 @@
   </div>
 </section>
 
-<!-- ====== Test de personalidad ====== -->
-<section id="scr-test" class="scr dim hidden">
-  <div class="box test-box">
+<!-- ====== Selección del Pokémon Inicial con el Profesor Oak ====== -->
+<section id="scr-test" class="scr dim hidden" translate="no">
+  <div class="box test-box oak-test-box">
+    <!-- Diálogo del Profesor Oak con avatar -->
+    <div class="oak-dialogue">
+      <div class="oak-avatar-wrap">
+        <img src="assets/oak-portrait.png" alt="Profesor Oak" class="oak-avatar">
+      </div>
+      <div class="oak-bubble">
+        <div class="oak-name">Profesor Oak</div>
+        <p id="oak-speech" class="oak-text"></p>
+      </div>
+    </div>
+
     <div class="progress"><i id="test-bar"></i></div>
-    <p class="sub" id="test-count"></p>
-    <p class="q" id="test-q"></p>
-    <div class="answers" id="test-a"></div>
+    <div class="row between items-center" style="margin-bottom:12px">
+      <span class="sub" id="test-count">Pregunta 1 de 2</span>
+      <span class="sub badge-step" id="test-phase-badge">Fase 1: Personalidad</span>
+    </div>
+
+    <!-- Fase 1: Preguntas situacionales -->
+    <div id="oak-phase-questions" class="oak-phase">
+      <p class="q" id="test-q"></p>
+      <div class="answers" id="test-a"></div>
+      <div class="row between" style="margin-top:16px">
+        <button id="oak-q-prev" class="btn ghost hidden" type="button">← Pregunta anterior</button>
+        <span class="grow"></span>
+      </div>
+    </div>
+
+    <!-- Fase 2: Elección del camino -->
+    <div id="oak-phase-path" class="oak-phase hidden">
+      <h3 class="step-title">Elige el escenario de tu aventura</h3>
+      <div class="path-cards" id="oak-path-cards">
+        <!-- Renderizado dinámico de Bosque, Montaña, Lago -->
+      </div>
+      <div class="row between" style="margin-top:16px">
+        <button id="oak-path-prev" class="btn ghost" type="button">← Volver a preguntas</button>
+        <button id="oak-path-next" class="btn gold" type="button" disabled>Explorar este camino →</button>
+      </div>
+    </div>
+
+    <!-- Fase 3: Pokébolas misteriosas -->
+    <div id="oak-phase-balls" class="oak-phase hidden">
+      <h3 class="step-title">Elige una de las tres Pokébolas</h3>
+      <p class="sub center" style="margin-bottom:14px">Cada Pokébola resguarda a un compañero con afinidad a tu espíritu y tu camino.</p>
+      <div class="oak-balls-container" id="oak-balls-stage">
+        <!-- 3 Pokébolas interactivas -->
+      </div>
+      <div id="oak-balls-status" class="sub center" style="margin-top:12px;min-height:22px;color:var(--gold)"></div>
+      <div class="row" style="justify-content:flex-start;margin-top:12px">
+        <button id="oak-balls-prev" class="btn ghost small-btn" type="button">← Cambiar camino</button>
+      </div>
+    </div>
   </div>
 </section>
 
-<!-- ====== Resultado del test ====== -->
-<section id="scr-result" class="scr dim hidden">
-  <div class="box result">
-    <p class="sub">Tu personalidad es…</p>
-    <div class="trait" id="res-trait"></div>
-    <p id="res-text"></p>
-    <canvas id="res-stage" class="stage" width="200" height="150"></canvas>
-    <h3>Tu compañero: <span class="gold" id="res-name"></span></h3>
-    <div class="row" style="justify-content:center;margin-top:14px">
-      <button id="res-ok" class="btn gold">¡Vamos juntos!</button>
-      <button id="res-other" class="btn">Elegir otro</button>
+<!-- ====== Fase 4: Revelación del Pokémon inicial ====== -->
+<section id="scr-result" class="scr dim hidden" translate="no">
+  <div class="box result oak-result-box">
+    <div class="oak-dialogue" style="margin-bottom:12px">
+      <div class="oak-avatar-wrap">
+        <img src="assets/oak-portrait.png" alt="Profesor Oak" class="oak-avatar">
+      </div>
+      <div class="oak-bubble">
+        <div class="oak-name">Profesor Oak</div>
+        <p id="res-explanation" class="oak-text"></p>
+      </div>
+    </div>
+
+    <div class="reveal-stage-wrap">
+      <canvas id="res-stage" class="stage" width="220" height="160"></canvas>
+      <div class="reveal-info">
+        <div class="reveal-badge" id="res-trait-badge">Afinidad: Audaz</div>
+        <h2 class="reveal-name"><span class="gold" id="res-name"></span></h2>
+        <div id="res-types" class="reveal-types"></div>
+      </div>
+    </div>
+
+    <!-- Elementos para compatibilidad -->
+    <div class="trait hidden" id="res-trait"></div>
+    <p id="res-text" class="hidden"></p>
+
+    <div class="reveal-actions" style="margin-top:18px">
+      <button id="res-battle" class="btn gold big-btn grow" type="button">Comenzar batalla →</button>
+      <div class="row center" style="margin-top:10px;gap:12px">
+        <button id="res-other" class="btn ghost small-btn" type="button">Elegir otro inicial</button>
+        <button id="res-ok" class="btn hidden" type="button">Continuar</button>
+      </div>
     </div>
   </div>
 </section>
@@ -156,7 +224,7 @@
 <section id="scr-menu" class="scr hidden">
   <div class="menu-left">
     <div class="logo">
-      <div class="t1">PokéSurvivor</div>
+      <div class="t1">Super Batalla Pokémon</div>
       <div class="t2">Mundo Misterioso</div>
     </div>
     <div class="partner-card">
@@ -225,7 +293,7 @@
   <div class="box legal" style="width:min(640px,100%)">
     <div class="row between"><h2>Aviso legal</h2><button class="btn small ghost" id="legal-close">Cerrar</button></div>
     <h3>Proyecto de fan</h3>
-    <p><b>PokéSurvivor</b> es un juego hecho por fans, <b>gratuito y sin ánimo de lucro</b>.
+    <p><b>Super Batalla Pokémon</b> es un juego hecho por fans, <b>gratuito y sin ánimo de lucro</b>.
       No tiene anuncios ni compras. Se puede apoyar con donaciones voluntarias, que se usan sólo para pagar los servidores y el dominio, y que no dan ninguna ventaja en el juego.</p>
     <p>No está afiliado, patrocinado ni aprobado por Nintendo, Creatures Inc., GAME FREAK ni
       The Pokémon Company. Pokémon y todos los nombres y personajes relacionados son marcas y
@@ -261,7 +329,7 @@
 </section>
 <div id="boot" class="boot">
   <div class="boot-in">
-    <h1>PokéSurvivor</h1>
+    <h1>Super Batalla Pokémon</h1>
     <p>Juego de supervivencia con Pokémon, gratis en el navegador y en el móvil.</p>
     <p class="boot-ld">Cargando…</p>
   </div>
@@ -281,7 +349,7 @@
 </script>
 <div id="tap-start" class="tapstart hidden">
   <div class="boot-in">
-    <h1>PokéSurvivor</h1>
+    <h1>Super Batalla Pokémon</h1>
     <p>Sobrevive a las hordas con tu compañero Pokémon</p>
     <p class="tap-blink">Pulsa para empezar</p>
   </div>
@@ -289,9 +357,9 @@
 <noscript>
   <div class="boot noscript">
     <div class="boot-in">
-      <h1>PokéSurvivor</h1>
-      <p>PokéSurvivor necesita JavaScript para funcionar. Actívalo para jugar.</p>
-      <p>Fan game gratuito de supervivencia con 966 Pokémon de las 9 regiones: elige tu compañero, sobrevive a las hordas, evoluciona tus ataques, enfréntate a legendarios y juega en cooperativo con hasta 4 amigos.</p>
+      <h1>Super Batalla Pokémon</h1>
+      <p>Super Batalla Pokémon necesita JavaScript para funcionar. Actívalo para jugar.</p>
+      <p>Fan game gratuito de supervivencia con 150 Pokémon originales de la primera temporada: elige tu compañero, sobrevive a las hordas, evoluciona tus ataques, enfréntate a legendarios y juega en cooperativo con hasta 4 amigos.</p>
       <p><a href="guia/">Guía del juego</a> · <a href="pokedex/">Pokédex: todos los Pokémon jugables</a></p>
     </div>
   </div>
@@ -497,6 +565,6 @@
 </section>
 
 <!-- datos generados -->
-<script defer src="js/app.min.js?v=aba6d4b884"></script>
+<script defer src="js/app.min.js?v=cad8c52edf"></script>
 </body>
 </html>

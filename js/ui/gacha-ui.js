@@ -15,10 +15,17 @@ G.GachaUI = (() => {
     const tabs = $('gacha-gens');
     G.Gacha.BANNERS.forEach(b => {
       const t = document.createElement('button');
-      t.className = 'gen-tab';
+      t.className = 'gen-tab' + (b.disabled ? ' disabled' : '');
       t.dataset.gen = b.gen;
-      t.innerHTML = `<b>${b.name}</b><small>Gen ${b.gen}</small>`;
-      t.onclick = () => { gen = b.gen; refresh(); };
+      t.innerHTML = `<b>${b.name}</b><small>${b.disabled ? 'Bloqueado' : 'Gen ' + b.gen}</small>`;
+      t.onclick = () => {
+        if (b.disabled) {
+          G.UI.toast('Generación bloqueada. Solo los 150 Pokémon originales están habilitados.');
+          return;
+        }
+        gen = b.gen;
+        refresh();
+      };
       tabs.appendChild(t);
     });
   }
@@ -30,10 +37,11 @@ G.GachaUI = (() => {
 
   function refresh() {
     const s = G.DB.save;
+    if (G.Gacha.BANNERS[gen - 1]?.disabled) gen = 1;
     const banner = G.Gacha.BANNERS[gen - 1];
     document.querySelectorAll('#gacha-gens .gen-tab').forEach(t => t.classList.toggle('on', +t.dataset.gen === gen));
 
-    const all = G.DEX.filter(p => p.gen === gen);
+    const all = G.DEX.filter(p => !p.disabled && p.gen === gen);
     const owned = all.filter(p => s.owned[p.dex]).length;
     const shinies = all.filter(p => s.shiny && s.shiny[p.dex]).length;
     const [c1, c2, c3] = banner.color;
@@ -42,7 +50,7 @@ G.GachaUI = (() => {
        radial-gradient(circle at 15% 80%, rgba(196,123,255,.3), transparent 50%),
        linear-gradient(135deg, ${c1}, ${c2} 55%, ${c3})`;
     $('banner-title').textContent = banner.name + ' Misterioso';
-    $('banner-desc').textContent = `Los ${all.length} Pokémon de la generación ${gen}. ¡Los legendarios esperan!`;
+    $('banner-desc').textContent = `Los 150 Pokémon originales de la primera temporada (Kanto). ¡Los legendarios esperan!`;
     $('gacha-owned').innerHTML = `Tienes ${owned} de ${all.length}` +
       (shinies ? ` · ${G.Icons.html('shiny', 12)} ${shinies} shiny` : '');
 

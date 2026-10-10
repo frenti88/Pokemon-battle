@@ -67,10 +67,21 @@ test('Firebase está aislado en entorno local (G.FIREBASE_CONFIG es null)', () =
   assert.strictEqual(G.DB.mode, 'local', 'G.DB.mode debe inicializarse en local');
 });
 
-// 2. Catálogo de Pokémon e Integridad
-test('Catálogo de Pokédex contiene 966+ entradas con tipos y estadísticas válidas', () => {
+// 2. Catálogo de Pokémon e Integridad (Restricción de 150 originales habilitados)
+test('Catálogo de Pokédex contiene 966+ entradas y exactamente 150 originales habilitados', () => {
   assert.ok(Array.isArray(G.DEX), 'G.DEX debe ser un array');
   assert.ok(G.DEX.length >= 966, `G.DEX tiene ${G.DEX.length} entradas, se esperaban >= 966`);
+
+  const enabled = G.DEX.filter(p => p.enabled && !p.disabled);
+  const disabled = G.DEX.filter(p => p.disabled);
+
+  assert.strictEqual(enabled.length, 150, `Se esperaban exactamente 150 Pokémon habilitados, encontrados: ${enabled.length}`);
+  assert.strictEqual(disabled.length, G.DEX.length - 150, `El resto debe estar deshabilitado`);
+
+  for (const mon of enabled) {
+    assert.ok(mon.dex >= 1 && mon.dex <= 150, `Pokémon habilitado #${mon.dex} está fuera del rango 1..150`);
+    assert.strictEqual(G.isPokemonEnabled(mon.dex), true);
+  }
 
   for (const mon of G.DEX) {
     assert.ok(mon.dex > 0, `dex inválido: ${mon.dex}`);
@@ -84,10 +95,15 @@ test('Catálogo de Pokédex contiene 966+ entradas con tipos y estadísticas vá
 });
 
 // 3. Starters y Referencias
-test('Starters válidos y referenciados en Pokédex', () => {
+test('Starters válidos y referenciados en Pokédex (activos de 1ª temporada)', () => {
   assert.ok(Array.isArray(G.STARTERS), 'G.STARTERS debe ser un array');
-  assert.ok(G.STARTERS.length >= 29, `Esperados >= 29 starters, encontrados: ${G.STARTERS.length}`);
+  assert.ok(Array.isArray(G.STARTERS_ALL), 'G.STARTERS_ALL debe ser un array');
+  assert.ok(G.STARTERS_ALL.length >= 29, `Esperados >= 29 starters totales, encontrados: ${G.STARTERS_ALL.length}`);
+  assert.ok(G.STARTERS.length >= 7, `Esperados >= 7 starters activos, encontrados: ${G.STARTERS.length}`);
+
   for (const s of G.STARTERS) {
+    assert.ok(s.dex <= 150, `Starter activo #${s.dex} debe ser <= 150 (1ª temporada)`);
+    assert.strictEqual(G.isPokemonEnabled(s.dex), true, `Starter #${s.dex} debe estar habilitado`);
     const mon = G.DEX_BY[s.dex];
     assert.ok(mon, `Starter #${s.dex} no existe en DEX_BY`);
     assert.ok(s.start, `Starter #${s.dex} no tiene startMove`);
@@ -294,8 +310,77 @@ test('ModeRegistry: registrar modo custom y ciclo de vida', () => {
   assert.strictEqual(G.ModeRegistry.active().id, 'classic');
 });
 
+// 15. Sistema de Selección Inicial del Profesor Oak (G.OakFlow)
+test('G.OakFlow: configuración de preguntas, caminos y afinidades', () => {
+  assert.ok(G.OakFlow, 'G.OakFlow debe estar definido');
+  assert.ok(typeof G.OakFlow.introText === 'string' && G.OakFlow.introText.length > 0);
+  assert.ok(typeof G.OakFlow.pathIntro === 'string' && G.OakFlow.pathIntro.length > 0);
+  assert.ok(typeof G.OakFlow.pokeballsIntro === 'string' && G.OakFlow.pokeballsIntro.length > 0);
+
+  // Verificación de preguntas
+  assert.strictEqual(G.OakFlow.questions.length, 2, 'Debe haber exactamente 2 preguntas');
+  const validTraits = new Set(['audaz', 'protector', 'curioso']);
+  for (const q of G.OakFlow.questions) {
+    assert.ok(q.id && q.text, 'Pregunta debe tener id y text');
+    assert.strictEqual(q.options.length, 3, 'Cada pregunta debe tener 3 opciones');
+    for (const opt of q.options) {
+      assert.ok(validTraits.has(opt.trait), `Rasgo desconocido: ${opt.trait}`);
+    }
+  }
+
+  // Verificación de caminos
+  assert.strictEqual(G.OakFlow.paths.length, 3, 'Debe haber 3 caminos (bosque, montaña, lago)');
+  const pathIds = G.OakFlow.paths.map(p => p.id);
+  assert.deepStrictEqual(pathIds.sort(), ['forest', 'lake', 'mountain'].sort());
+
+  for (const p of G.OakFlow.paths) {
+    assert.ok(p.candidates.length >= 3, `Camino ${p.id} debe tener al menos 3 candidatos`);
+    for (const c of p.candidates) {
+      assert.ok(c.dex >= 1 && c.dex <= 150, `Candidato #${c.dex} en ${p.id} debe pertenecer a temporada 1`);
+      assert.ok(validTraits.has(c.affinity), `Afinidad inválida en #${c.dex}: ${c.affinity}`);
+      assert.strictEqual(G.isPokemonEnabled(c.dex), true, `Candidato #${c.dex} debe estar habilitado`);
+    }
+  }
+});
+
+test('G.OakFlow: generación de 3 Pokébolas ponderadas (70% afinidad, 30% sorpresa) sin duplicados', () => {
+  const paths = ['forest', 'mountain', 'lake'];
+  const testAffinities = [
+    ['audaz', 'audaz'],
+    ['protector', 'curioso'],
+    ['curioso', 'curioso'],
+    ['audaz', 'protector']
+  ];
+
+  for (const pathId of paths) {
+    for (const aff of testAffinities) {
+      for (let run = 0; run < 100; run++) {
+        const balls = G.OakFlow.generatePokeballs(pathId, aff);
+        assert.strictEqual(balls.length, 3, 'Debe generar exactamente 3 Pokébolas');
+
+        const dexes = balls.map(b => b.dex);
+        const uniqueDexes = new Set(dexes);
+        assert.strictEqual(uniqueDexes.size, 3, `Pokébolas contienen duplicados en camino ${pathId}: ${dexes.join(',')}`);
+
+        for (const mon of balls) {
+          assert.ok(mon.dex >= 1 && mon.dex <= 150, `Pokémon #${mon.dex} está fuera del rango 1..150`);
+          assert.strictEqual(G.isPokemonEnabled(mon.dex), true, `Pokémon #${mon.dex} debe estar habilitado`);
+        }
+      }
+    }
+  }
+
+  // Explicación narrativa
+  const bulba = G.DEX_BY[1];
+  const expAudaz = G.OakFlow.getExplanation(bulba, 'audaz', 'forest');
+  const expProt = G.OakFlow.getExplanation(bulba, 'protector', 'forest');
+  assert.ok(expAudaz.includes('Bulbasaur'), 'Explicación debe incluir el nombre del Pokémon');
+  assert.ok(expProt.includes('Bulbasaur'), 'Explicación debe incluir el nombre del Pokémon');
+});
+
 console.log('\n===========================================');
 console.log(`RESULTADOS: ${passed} pasadas, ${failed} falladas.`);
 console.log('===========================================\n');
 
 process.exit(failed > 0 ? 1 : 0);
+

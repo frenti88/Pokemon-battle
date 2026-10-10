@@ -106,11 +106,22 @@ G.PokemonRegistry = (() => {
     return list;
   }
 
+  function isEnabled(idOrDex) {
+    const p = get(idOrDex);
+    return !!(p && p.enabled && !p.disabled);
+  }
+
+  function getEnabled() {
+    return getAll().filter(p => !p.disabled && p.enabled !== false);
+  }
+
   return {
     register,
     get,
     has,
     getAll,
+    isEnabled,
+    getEnabled,
     validate,
     FALLBACK_DEFAULT_DEX
   };

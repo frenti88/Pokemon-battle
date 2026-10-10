@@ -11,7 +11,7 @@ G.RankingUI = (() => {
 
   function init() {
     const dl = $('rk-dl');
-    dl.innerHTML = G.DEX.map(p => `<option value="${esc(p.name)}">`).join('');
+    dl.innerHTML = G.DEX.filter(p => !p.disabled).map(p => `<option value="${esc(p.name)}">`).join('');
     $('rk-poke').onchange = () => {
       const v = $('rk-poke').value.trim().toLowerCase();
       const p = G.DEX.find(x => x.name.toLowerCase() === v);

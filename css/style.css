@@ -148,31 +148,206 @@ label { display: block; font-size: 14px; color: var(--muted); margin: 8px 0 4px;
 
 /* ---------- pantalla de inicio ---------- */
 .logo { text-align: center; margin-bottom: 18px; }
-.logo .t1 { font-size: 46px; font-weight: 700; line-height: 1; color: var(--gold);
-  text-shadow: 3px 3px 0 #a55f00, 6px 6px 0 var(--shadow); letter-spacing: 1px; }
-.logo .t2 { font-size: 18px; color: #fff; margin-top: 6px; letter-spacing: 3px; text-transform: uppercase; }
+.logo .t1 { font-size: clamp(24px, 5.5vw, 36px); font-weight: 700; line-height: 1.15; color: var(--gold);
+  text-shadow: 2px 2px 0 #a55f00, 4px 4px 0 var(--shadow); letter-spacing: 1px; }
+.logo .t2 { font-size: 16px; color: #fff; margin-top: 4px; letter-spacing: 2px; text-transform: uppercase; }
 
-/* ---------- test de personalidad ---------- */
-.test-box { width: min(620px, 100%); }
-.progress { height: 8px; background: rgba(0,0,0,.35); border-radius: 8px; overflow: hidden; margin-bottom: 18px; }
+/* ---------- test de personalidad y selección del Profesor Oak ---------- */
+.test-box { width: min(640px, 100%); }
+.oak-test-box { max-width: 650px; }
+.oak-result-box { max-width: 600px; text-align: center; }
+
+.oak-dialogue {
+  display: flex; align-items: center; gap: 14px; margin-bottom: 14px;
+  background: rgba(0, 0, 0, 0.32); border: 2px solid rgba(255, 210, 63, 0.35);
+  border-radius: 14px; padding: 10px 14px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+}
+.oak-avatar-wrap {
+  flex: 0 0 54px; width: 54px; height: 68px;
+  background: radial-gradient(circle at 50% 40%, rgba(255,210,63,0.18), rgba(10,18,36,0.9));
+  border: 2px solid var(--gold); border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.6);
+}
+.oak-avatar {
+  width: 48px; height: 62px; object-fit: contain; image-rendering: pixelated;
+}
+.oak-bubble { flex: 1; text-align: left; }
+.oak-name {
+  font-size: 13px; font-weight: 700; color: var(--gold); letter-spacing: 1px;
+  text-transform: uppercase; margin-bottom: 3px;
+}
+.oak-text {
+  font-size: 15px; line-height: 1.35; margin: 0; color: #f4f8ff;
+  text-shadow: 1px 1px 0 var(--shadow);
+}
+
+.badge-step {
+  display: inline-block; padding: 2px 8px; border-radius: 6px;
+  background: rgba(255, 210, 63, 0.15); border: 1px solid var(--gold);
+  color: var(--gold); font-size: 12px; font-weight: 700;
+}
+.step-title {
+  font-size: 19px; color: var(--gold); text-align: center;
+  margin: 4px 0 10px; text-shadow: 2px 2px 0 var(--shadow);
+}
+
+.progress { height: 8px; background: rgba(0,0,0,.35); border-radius: 8px; overflow: hidden; margin-bottom: 12px; }
 .progress i { display: block; height: 100%; background: var(--gold); transition: width .25s; }
-.q { font-size: 22px; margin: 0 0 16px; min-height: 2.6em; }
+.q { font-size: 21px; margin: 0 0 14px; min-height: 2.4em; }
 .answers { display: flex; flex-direction: column; gap: 8px; }
 .answer {
   appearance: none; text-align: left; cursor: pointer;
   padding: 12px 16px 12px 34px; position: relative;
-  background: rgba(0,0,0,.18); border: 2px solid rgba(244,248,255,.25); border-radius: 9px;
-  font-size: 17px; text-shadow: 2px 2px 0 var(--shadow);
+  background: rgba(0,0,0,.22); border: 2px solid rgba(244,248,255,.25); border-radius: 10px;
+  font-size: 16px; text-shadow: 2px 2px 0 var(--shadow);
+  transition: transform .1s, background .12s, border-color .12s;
+}
+.answer .answer-sub {
+  display: block; font-size: 12px; color: var(--muted); margin-top: 3px; font-weight: normal;
 }
 .answer::before {
   content: ''; position: absolute; left: 10px; top: 50%; width: 12px; height: 18px; margin-top: -9px;
   background: var(--ico-cursor) no-repeat center / contain; image-rendering: pixelated; opacity: 0;
 }
-.answer:hover { background: rgba(255,255,255,.1); border-color: var(--edge); }
+.answer:hover { background: rgba(255,255,255,.1); border-color: var(--edge); transform: translateX(2px); }
 .answer:hover::before { opacity: 1; }
+.answer.on {
+  border-color: var(--gold); background: rgba(255,210,63,.16);
+  box-shadow: 0 0 12px rgba(255,210,63,.3);
+}
 
+/* ---------- Selección de Camino (Fase 2) ---------- */
+.path-cards {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 12px; margin: 12px 0;
+}
+@media (max-width: 600px) {
+  .path-cards { grid-template-columns: 1fr; }
+}
+.path-card {
+  background: rgba(0,0,0,.25); border: 2px solid rgba(244,248,255,.2);
+  border-radius: 12px; padding: 14px 10px; text-align: center; cursor: pointer;
+  transition: transform .15s, border-color .15s, box-shadow .15s, background .15s;
+  position: relative;
+}
+.path-card:hover { transform: translateY(-3px); border-color: var(--edge); background: rgba(255,255,255,.08); }
+.path-card.on {
+  border-color: var(--gold); background: rgba(255,210,63,.15);
+  box-shadow: 0 0 16px rgba(255,210,63,.35);
+  transform: translateY(-4px);
+}
+.path-card .path-icon { font-size: 32px; display: block; margin-bottom: 6px; }
+.path-card .path-title { font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+.path-card.on .path-title { color: var(--gold); }
+.path-card .path-desc { font-size: 12px; color: var(--muted); line-height: 1.3; }
+.path-card[data-path="forest"] { border-top: 4px solid #2e7d32; }
+.path-card[data-path="mountain"] { border-top: 4px solid #d84315; }
+.path-card[data-path="lake"] { border-top: 4px solid #1565c0; }
+
+/* ---------- Pokébolas Misteriosas (Fase 3) ---------- */
+.oak-balls-container {
+  display: flex; justify-content: center; align-items: center; gap: 28px;
+  margin: 18px 0 8px; min-height: 140px;
+}
+.oak-ball-wrapper {
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  cursor: pointer; transition: transform .2s, opacity .3s;
+}
+.oak-ball {
+  width: 86px; height: 86px; border-radius: 50%; position: relative;
+  background: linear-gradient(180deg, #ff4d4d 0 47%, #1a1a1a 47% 53%, #f4f4f4 53% 100%);
+  border: 4px solid #1a1a1a;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.5);
+  animation: oakBallFloat 3s ease-in-out infinite, oakBallWobble 4s ease-in-out infinite;
+}
+.oak-ball::after {
+  content: ''; position: absolute; left: 50%; top: 50%; width: 22px; height: 22px;
+  transform: translate(-50%, -50%); border-radius: 50%;
+  background: #f4f4f4; border: 4px solid #1a1a1a;
+  box-shadow: 0 0 0 2px #fff;
+}
+.oak-ball-wrapper:hover .oak-ball {
+  transform: scale(1.1) translateY(-6px);
+  box-shadow: 0 10px 22px rgba(255, 210, 63, 0.45);
+}
+.oak-ball-label { font-size: 13px; font-weight: 700; color: var(--muted); transition: color .15s; }
+.oak-ball-wrapper:hover .oak-ball-label { color: var(--gold); }
+
+.oak-balls-container.locked .oak-ball-wrapper:not(.selected) {
+  opacity: 0.35; pointer-events: none; transform: scale(0.9);
+}
+.oak-balls-container.locked .oak-ball-wrapper.selected {
+  pointer-events: none;
+}
+
+.oak-ball.shaking {
+  animation: oakBallShake 0.32s ease-in-out infinite !important;
+}
+.oak-ball.bursting {
+  animation: oakBallBurst 1.3s ease-out forwards !important;
+}
+
+@keyframes oakBallFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-7px); }
+}
+@keyframes oakBallWobble {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-5deg); }
+  75% { transform: rotate(5deg); }
+}
+@keyframes oakBallShake {
+  0%, 100% { transform: translateY(-14px) rotate(0deg) scale(1.18); }
+  25% { transform: translateY(-14px) rotate(-18deg) scale(1.18); }
+  75% { transform: translateY(-14px) rotate(18deg) scale(1.18); }
+}
+@keyframes oakBallBurst {
+  0% { transform: translateY(-14px) scale(1.18); box-shadow: 0 0 10px 4px #fff; }
+  50% { transform: translateY(-24px) scale(1.35); box-shadow: 0 0 90px 45px #ffd23f, 0 0 160px 80px #fff; }
+  100% { transform: translateY(-24px) scale(0); opacity: 0; box-shadow: 0 0 200px 100px transparent; }
+}
+
+/* ---------- Pantalla de Revelación (Fase 4) ---------- */
 .result { width: min(560px, 100%); text-align: center; }
 .result .trait { font-size: 30px; color: var(--gold); margin: 4px 0; }
+.reveal-stage-wrap {
+  display: flex; flex-direction: column; align-items: center; margin: 8px 0;
+}
+.reveal-stage-wrap .stage.reveal-pop {
+  animation: revealPop 0.6s cubic-bezier(0.18, 0.89, 0.32, 1.28) both;
+}
+@keyframes revealPop {
+  0% { transform: scale(0.5); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.reveal-info { margin-top: 8px; text-align: center; }
+.reveal-badge {
+  display: inline-block; padding: 2px 10px; border-radius: 6px;
+  background: rgba(255, 210, 63, 0.2); border: 1px solid var(--gold);
+  color: var(--gold); font-size: 13px; font-weight: 700; margin-bottom: 4px;
+}
+.reveal-name { font-size: 26px; margin: 2px 0 6px; }
+.reveal-types { display: flex; justify-content: center; gap: 6px; margin-bottom: 4px; }
+.big-btn {
+  font-size: 18px !important; padding: 13px 26px !important;
+  letter-spacing: 0.5px;
+  box-shadow: 0 6px 18px rgba(255, 210, 63, 0.45) !important;
+}
+.big-btn:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 8px 24px rgba(255, 210, 63, 0.65) !important;
+}
+.small-btn { font-size: 13px !important; padding: 6px 14px !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  .oak-ball { animation: none !important; }
+  .oak-ball.shaking { transform: scale(1.1) !important; animation: none !important; }
+  .oak-ball.bursting { opacity: 0 !important; animation: none !important; }
+  .reveal-stage-wrap .stage.reveal-pop { animation: none !important; }
+}
+
 .stage {
   display: block; margin: 8px auto 6px;
   /* Recuadro estilo PMD: fondo oscuro y borde del color del tipo (--stage-c). */
@@ -231,7 +406,7 @@ label { display: block; font-size: 14px; color: var(--muted); margin: 8px 0 4px;
   flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center;
   padding: 30px; min-width: 0;
 }
-.menu-left .logo .t1 { font-size: clamp(36px, 6vw, 64px); }
+.menu-left .logo .t1 { font-size: clamp(26px, 4.5vw, 42px); }
 .partner-card { text-align: center; margin-top: 10px; }
 .partner-card .nm { font-size: 24px; font-weight: 700; text-shadow: 3px 3px 0 var(--shadow); }
 .partner-card .lv { color: var(--muted); font-size: 14px; text-shadow: 2px 2px 0 var(--shadow); }
@@ -257,7 +432,7 @@ label { display: block; font-size: 14px; color: var(--muted); margin: 8px 0 4px;
   .menu-list { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 6px; }
   .menu-item.play { grid-column: span 2; }
   .menu-item small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .menu-left .logo .t1 { font-size: clamp(32px, 5vw, 52px); }
+  .menu-left .logo .t1 { font-size: clamp(22px, 3.8vw, 34px); }
   #menu-partner { height: min(30vh, 200px); width: auto; }
 }
 .topbar {
@@ -417,6 +592,8 @@ img.pix { image-rendering: pixelated; image-rendering: crisp-edges; vertical-ali
 .gen-tab:hover { border-color: var(--edge); }
 .gen-tab.on { border-color: var(--gold); background: rgba(255,210,63,.14); }
 .gen-tab.on b { color: var(--gold); }
+.gen-tab.disabled { opacity: 0.45; cursor: not-allowed; filter: grayscale(0.8); }
+.gen-tab.disabled:hover { border-color: rgba(244,248,255,.22); }
 
 /* ============ normal / shiny ============ */
 .seg { display: flex; justify-content: center; gap: 0; margin: 2px auto 8px; width: max-content;

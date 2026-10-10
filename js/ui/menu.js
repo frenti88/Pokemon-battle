@@ -34,6 +34,11 @@ G.MenuUI = (() => {
 
   function open() {
     const s = G.DB.save;
+    if (!s.partner || (G.DEX_BY[s.partner] && G.DEX_BY[s.partner].disabled)) {
+      s.partner = 1;
+      s.owned[1] = s.owned[1] || { at: Date.now(), from: 'starter' };
+      G.DB.commit();
+    }
     const mon = G.DEX_BY[s.partner];
     const shiny = !!s.partnerShiny && G.DB.ownsShiny(mon.dex);
     G.UI.chrome(true);
@@ -44,9 +49,10 @@ G.MenuUI = (() => {
     $('menu-partner-name').innerHTML = mon.name + (shiny ? ' ' + G.Icons.html('shiny', 24) : '');
     $('menu-partner-info').innerHTML = G.UI.typeChips(mon.types) + ' ' + G.UI.stars(mon.rarity);
 
-    const owned = Object.keys(s.owned).filter(d => G.DEX_BY[d]).length;
-    const shinies = Object.keys(s.shiny || {}).length;
-    $('menu-dex-count').textContent = `${owned} / ${G.DEX.length}` + (shinies ? ` · ${shinies} shiny` : '');
+    const enabledTotal = G.DEX.filter(p => !p.disabled).length;
+    const owned = Object.keys(s.owned).filter(d => G.DEX_BY[d] && !G.DEX_BY[d].disabled).length;
+    const shinies = Object.keys(s.shiny || {}).filter(d => G.DEX_BY[d] && !G.DEX_BY[d].disabled).length;
+    $('menu-dex-count').textContent = `${owned} / ${enabledTotal}` + (shinies ? ` · ${shinies} shiny` : '');
 
     const st = s.stats;
     $('menu-stats').innerHTML =
@@ -90,21 +96,35 @@ G.MenuUI = (() => {
   function openDex() {
     G.UI.show('scr-dex', true);
     const s = G.DB.save;
-    if (dexSel == null) { dexSel = s.partner; dexGen = G.DEX_BY[s.partner].gen; }
-    const owned = Object.keys(s.owned).filter(d => G.DEX_BY[d]).length;
-    $('dex-total').textContent = `${owned} / ${G.DEX.length}`;
+    if (dexSel == null || (G.DEX_BY[dexSel] && G.DEX_BY[dexSel].disabled)) {
+      dexSel = s.partner;
+      dexGen = 1;
+    } else {
+      dexGen = 1; // Solo Gen 1 está habilitada
+    }
+    const enabledTotal = G.DEX.filter(p => !p.disabled).length;
+    const owned = Object.keys(s.owned).filter(d => G.DEX_BY[d] && !G.DEX_BY[d].disabled).length;
+    $('dex-total').textContent = `${owned} / ${enabledTotal}`;
 
-    // Pestañas de generación, con cuántos tienes de cada una.
+    // Pestañas de generación: Gen 1 habilitada, Gen 2-9 deshabilitadas
     const tabs = $('dex-gens');
     tabs.innerHTML = '';
     GEN_NAMES.forEach((name, i) => {
       const g = i + 1;
-      const total = G.DEX.filter(p => p.gen === g).length;
-      const have = G.DEX.filter(p => p.gen === g && s.owned[p.dex]).length;
+      const isDisabled = g > 1;
+      const total = G.DEX.filter(p => !p.disabled && p.gen === g).length;
+      const have = G.DEX.filter(p => !p.disabled && p.gen === g && s.owned[p.dex]).length;
       const b = document.createElement('button');
-      b.className = 'gen-tab' + (g === dexGen ? ' on' : '');
-      b.innerHTML = `<b>${name}</b><small>${have}/${total}</small>`;
-      b.onclick = () => { dexGen = g; openDex(); };
+      b.className = 'gen-tab' + (g === dexGen ? ' on' : '') + (isDisabled ? ' disabled' : '');
+      b.innerHTML = `<b>${name}</b><small>${isDisabled ? 'Deshabilitado' : have + '/' + total}</small>`;
+      b.onclick = () => {
+        if (isDisabled) {
+          G.UI.toast('Generación deshabilitada. Solo los 150 Pokémon originales están disponibles.');
+          return;
+        }
+        dexGen = g;
+        openDex();
+      };
       tabs.appendChild(b);
     });
 
@@ -129,7 +149,7 @@ G.MenuUI = (() => {
     const grid = $('dex-grid');
     grid.innerHTML = '';
     for (const p of G.DEX) {
-      if (p.gen !== dexGen) continue;
+      if (p.gen !== dexGen || p.disabled) continue;
       const own = !!s.owned[p.dex], sh = !!(s.shiny && s.shiny[p.dex]);
       if (dexFilter === 'own' && !own) continue;
       if (dexFilter === 'miss' && own) continue;
@@ -185,7 +205,8 @@ G.MenuUI = (() => {
         <div style="color:${G.Gacha.RARITY_COLOR[p.rarity]}">${G.UI.stars(p.rarity, 24)} ${G.Gacha.RARITY_NAME[p.rarity]}</div>
         <div style="margin:6px 0">${own ? G.UI.typeChips(p.types) : ''}</div>
       </div>
-      ${own ? `
+      ${p.disabled ? `<p class="center" style="color:var(--muted)">Este Pokémon está deshabilitado temporalmente.<br>Solo los 150 originales de la primera temporada están activos.</p>`
+        : own ? `
         ${bar('Vida', p.hp, max.hp, p.hp)}
         ${bar('Ataque', p.atk, max.atk, '×' + p.atk.toFixed(2))}
         ${bar('Velocidad', p.spd, max.spd, p.spd)}
@@ -206,6 +227,7 @@ G.MenuUI = (() => {
     });
     const pick = $('dex-pick');
     if (pick) pick.onclick = () => {
+      if (p.disabled) return;
       s.partner = dex;
       s.partnerShiny = hasSh && viewShiny;
       G.DB.commit();
@@ -221,11 +243,11 @@ G.MenuUI = (() => {
   function openUpgrades() {
     G.UI.show('scr-upgrades', true);
     const s = G.DB.save;
-    if (!upgDex || !s.owned[upgDex]) upgDex = s.partner;
+    if (!upgDex || !s.owned[upgDex] || (G.DEX_BY[upgDex] && G.DEX_BY[upgDex].disabled)) upgDex = s.partner;
     // Selector con tus Pokémon: el compañero primero, luego los que ya tienen mejoras.
     const sel = $('upg-mon');
     const lv = d => Object.values(s.pupg[d] || {}).reduce((a, b) => a + b, 0);
-    const mons = Object.keys(s.owned).map(Number).filter(d => G.DEX_BY[d])
+    const mons = Object.keys(s.owned).map(Number).filter(d => G.DEX_BY[d] && !G.DEX_BY[d].disabled)
       .sort((a, b) => (b === s.partner) - (a === s.partner) || lv(b) - lv(a) || a - b);
     sel.innerHTML = mons.map(d => `<option value="${d}">${G.DEX_BY[d].name}${d === s.partner ? ' (compañero)' : ''}${lv(d) ? ' · ' + lv(d) + ' niveles' : ''}</option>`).join('');
     sel.value = upgDex;

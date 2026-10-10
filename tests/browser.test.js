@@ -36,7 +36,8 @@ async function runBrowserTests() {
 
   const context = await browser.newContext({
     viewport: { width: 1280, height: 720 },
-    deviceScaleFactor: 1
+    deviceScaleFactor: 1,
+    locale: 'es-ES'
   });
 
   const page = await context.newPage();
@@ -80,65 +81,80 @@ async function runBrowserTests() {
     await page.waitForTimeout(1000);
 
     // -------------------------------------------------------------
-    // 3. SELECCIÓN DE COMPAÑERO / TEST
+    // 3. SELECCIÓN DE COMPAÑERO / TEST DEL PROFESOR OAK (4 FASES)
     // -------------------------------------------------------------
-    console.log('\n[3/7] Gestionando selección inicial de compañero...');
+    console.log('\n[3/7] Gestionando selección inicial con el Profesor Oak...');
     const testScreen = page.locator('#scr-test');
     const resultScreen = page.locator('#scr-result');
-    const startersScreen = page.locator('#scr-starters');
 
     if (await testScreen.isVisible()) {
-      console.log('  Completando preguntas del test de personalidad...');
-      while (await testScreen.isVisible()) {
-        const firstAnswer = page.locator('#test-a .answer').first();
-        if (await firstAnswer.isVisible()) {
-          await firstAnswer.click();
-          await page.waitForTimeout(300);
-        } else {
-          break;
-        }
-      }
+      console.log('  [Fase 1] Respondiendo preguntas situacionales de Oak...');
+      // Pregunta 1
+      const q1Ans = page.locator('#test-a .answer').first();
+      await q1Ans.waitFor({ state: 'visible', timeout: 5000 });
+      await page.screenshot({ path: path.join(SCREENSHOTS_DIR, '01_oak_phase1_questions.png') });
+      await q1Ans.click();
+      await page.waitForTimeout(500);
+
+      // Pregunta 2
+      const q2Ans = page.locator('#test-a .answer').first();
+      await q2Ans.waitFor({ state: 'visible', timeout: 5000 });
+      await q2Ans.click();
+      await page.waitForTimeout(500);
+
+      // Fase 2: Elección del camino
+      console.log('  [Fase 2] Seleccionando escenario / camino de la aventura...');
+      const pathCard = page.locator('#oak-path-cards .path-card').first();
+      await pathCard.waitFor({ state: 'visible', timeout: 5000 });
+      await pathCard.click();
+      await page.waitForTimeout(300);
+      await page.screenshot({ path: path.join(SCREENSHOTS_DIR, '01_oak_phase2_paths.png') });
+
+      const pathNext = page.locator('#oak-path-next');
+      await pathNext.click();
+      await page.waitForTimeout(500);
+
+      // Fase 3: Pokébolas misteriosas
+      console.log('  [Fase 3] Interactuando con las Pokébolas misteriosas...');
+      const ballsStage = page.locator('#oak-balls-stage');
+      await ballsStage.waitFor({ state: 'visible', timeout: 5000 });
+      await page.screenshot({ path: path.join(SCREENSHOTS_DIR, '01_oak_pokeballs.png') });
+
+      const firstBall = page.locator('#oak-balls-stage .oak-ball-wrapper').first();
+      await firstBall.click();
+      console.log('  Abriendo Pokébola con secuencia animada (1.35s)...');
+      await page.waitForTimeout(2000);
     }
 
-    if (await resultScreen.isVisible()) {
-      console.log('  Confirmando compañero en scr-result...');
-      await page.screenshot({ path: path.join(SCREENSHOTS_DIR, '01_starter_result.png') });
-      await page.locator('#res-ok').click();
-      await page.waitForTimeout(1000);
-    } else if (await startersScreen.isVisible()) {
-      console.log('  Seleccionando compañero en scr-starters...');
-      const firstCell = page.locator('#starter-grid .cell').first();
-      await firstCell.click();
-      await page.screenshot({ path: path.join(SCREENSHOTS_DIR, '01_starter_selection.png') });
-      await page.locator('#starter-ok').click();
-      await page.waitForTimeout(1000);
-    }
+    // Fase 4: Revelación del Pokémon
+    console.log('  [Fase 4] Verificando pantalla de revelación...');
+    await resultScreen.waitFor({ state: 'visible', timeout: 5000 });
 
-    // -------------------------------------------------------------
-    // 4. MENÚ PRINCIPAL
-    // -------------------------------------------------------------
-    console.log('\n[4/7] Verificando menú principal...');
-    const menuScreen = page.locator('#scr-menu');
-    await menuScreen.waitFor({ state: 'visible', timeout: 5000 });
+    const revealedName = await page.locator('#res-name').textContent();
+    const oakExp = await page.locator('#res-explanation').textContent();
+    console.log(`  Pokémon revelado: ${revealedName.trim()}`);
+    console.log(`  Explicación de Oak: ${oakExp.trim().slice(0, 65)}...`);
 
-    const partnerName = await page.locator('#menu-partner-name').textContent();
-    console.log(`  Compañero en menú: ${partnerName.trim()}`);
-    assert.ok(partnerName.trim().length > 0, 'El compañero debe tener nombre visible en menú');
+    assert.ok(revealedName.trim().length > 0, 'Debe haber un Pokémon revelado');
+    assert.ok(oakExp.trim().length > 0, 'Debe haber una explicación del Profesor Oak');
 
-    await page.screenshot({ path: path.join(SCREENSHOTS_DIR, '02_main_menu.png') });
+    await page.screenshot({ path: path.join(SCREENSHOTS_DIR, '01_starter_reveal.png') });
 
-    // -------------------------------------------------------------
-    // 5. ENTRAR A LA MAZMORRA (PLAY)
-    // -------------------------------------------------------------
-    console.log('\n[5/7] Iniciando partida (Start Run)...');
-    const playBtn = page.locator('button[data-go="play"]');
-    await playBtn.click();
+    // Comenzar batalla directamente utilizando el motor de combate actual
+    console.log('  Pulsando botón principal "Comenzar batalla →"...');
+    await page.locator('#res-battle').click();
     await page.waitForTimeout(2000);
 
-    // Comprobar que el canvas está visible y renderizando
+    // -------------------------------------------------------------
+    // 4. VERIFICAR INICIO DIRECTO DE LA BATALLA
+    // -------------------------------------------------------------
+    console.log('\n[4/7] Verificando combate activo en Canvas #game...');
     const canvas = page.locator('#game');
     await canvas.waitFor({ state: 'visible', timeout: 5000 });
-    console.log('  Canvas #game activo y renderizando correctamente.');
+
+    const isPlaying = await page.evaluate(() => G.Game.state === 'playing');
+    console.log(`  Estado del motor de juego: ${isPlaying ? 'playing (activo)' : G.Game.state}`);
+    assert.strictEqual(isPlaying, true, 'El estado del juego debe ser "playing"');
 
     // -------------------------------------------------------------
     // 6. SIMULAR MOVIMIENTO Y CAPTURAR JUEGO ACTIVO
@@ -191,6 +207,24 @@ async function runBrowserTests() {
       await page.locator('#btn-again').click();
       await page.waitForTimeout(1000);
     }
+
+    console.log('  Verificando persistencia y retorno al menú principal tras el combate...');
+    const menuScreen = page.locator('#scr-menu');
+    await menuScreen.waitFor({ state: 'visible', timeout: 5000 });
+
+    const partnerName = await page.locator('#menu-partner-name').textContent();
+    console.log(`  Compañero persistido en menú: ${partnerName.trim()}`);
+    assert.ok(partnerName.trim().length > 0, 'El compañero debe tener nombre visible en menú');
+
+    const logoTitle = await page.locator('#scr-menu .logo .t1').textContent();
+    console.log(`  Título de interfaz en menú: ${logoTitle.trim()}`);
+    assert.strictEqual(logoTitle.trim(), 'Super Batalla Pokémon');
+
+    const dexCount = await page.locator('#menu-dex-count').textContent();
+    console.log(`  Contador de Pokédex en menú: ${dexCount.trim()}`);
+    assert.ok(dexCount.includes('/ 150'), 'El contador de Pokédex debe indicar / 150');
+
+    await page.screenshot({ path: path.join(SCREENSHOTS_DIR, '02_main_menu.png') });
 
     // Probar también index.html (versión compilada)
     console.log('\n--- Probando versión empaquetada (index.html) ---');

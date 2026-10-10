@@ -82,7 +82,7 @@ G.Rift = (() => {
   function start(forceType) {
     if (arena) return;
     forceType = forceType || nextType; nextType = null;
-    let pool = G.DEX.filter(p => p.leg && G.SPRITE_META[p.dex]);
+    let pool = G.DEX.filter(p => !p.disabled && p.leg && G.SPRITE_META[p.dex]);
     if (forceType && pool.some(p => p.types.includes(forceType))) pool = pool.filter(p => p.types.includes(forceType));
     const mon = G.U.pick(pool);
     const cfg = {

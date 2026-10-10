@@ -976,5 +976,13 @@ G.DEX = [
 ];
 
 G.DEX_BY = {};
-for (const p of G.DEX) G.DEX_BY[p.dex] = p;
+for (const p of G.DEX) {
+  p.enabled = p.dex >= 1 && p.dex <= 150;
+  p.disabled = !p.enabled;
+  G.DEX_BY[p.dex] = p;
+}
 G.getPokemon = dex => G.DEX_BY[dex];
+G.isPokemonEnabled = dex => {
+  const p = G.DEX_BY[dex];
+  return !!(p && p.enabled && !p.disabled);
+};

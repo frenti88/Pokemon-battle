@@ -4,7 +4,7 @@
  *
  * Los stats salen de G.DEX; aquí sólo van los rasgos y el movimiento inicial.
  */
-G.STARTERS = [
+G.STARTERS_ALL = [
   { dex: 1,   start: 'vine-whip',     traits: ['leal', 'paciente'] },
   { dex: 4,   start: 'ember',         traits: ['valiente', 'impulsivo'] },
   { dex: 7,   start: 'water-gun',     traits: ['prudente', 'leal'] },
@@ -36,7 +36,22 @@ G.STARTERS = [
   { dex: 79,  start: 'confusion',     traits: ['tranquilo', 'paciente'] }
 ];
 
+// Starters activos: únicamente Pokémon originales de la primera temporada (dex <= 150)
+G.STARTERS = [
+  { dex: 1,   start: 'vine-whip',     traits: ['leal', 'paciente'] },
+  { dex: 4,   start: 'ember',         traits: ['valiente', 'impulsivo'] },
+  { dex: 7,   start: 'water-gun',     traits: ['prudente', 'leal'] },
+  { dex: 25,  start: 'thunder-shock', traits: ['valiente', 'alegre'] },
+  { dex: 39,  start: 'tackle',        traits: ['alegre', 'dulce'] },
+  { dex: 52,  start: 'tackle',        traits: ['astuto', 'travieso'] },
+  { dex: 54,  start: 'water-gun',     traits: ['caótico', 'tímido'] },
+  { dex: 66,  start: 'karate-chop',   traits: ['tenaz', 'orgulloso'] },
+  { dex: 79,  start: 'water-gun',     traits: ['tranquilo', 'paciente'] },
+  { dex: 133, start: 'tackle',        traits: ['sereno', 'solitario'] }
+];
+
 G.STARTER_BY = {};
+for (const s of G.STARTERS_ALL) G.STARTER_BY[s.dex] = s;
 for (const s of G.STARTERS) G.STARTER_BY[s.dex] = s;
 
 /** Movimiento inicial de cualquier Pokémon (starter o del gacha). */
@@ -119,4 +134,198 @@ G.personalityResult = scores => {
     else if (v === bestScore) best.push(s);
   }
   return { trait, dex: G.U.pick(best).dex };
+};
+
+// ============================================================================
+// REDISEÑO: SISTEMA DE SELECCIÓN INICIAL DEL PROFESOR OAK
+// ============================================================================
+G.OakFlow = {
+  introText: '¡Hola, entrenador! Antes de entregarte tu primer compañero, quiero descubrir cómo reaccionas ante una aventura.',
+
+  // Fase 1: Preguntas situacionales
+  questions: [
+    {
+      id: 'q1',
+      text: 'Estás explorando un bosque y escuchas un ruido extraño. ¿Qué haces?',
+      options: [
+        { id: '1a', text: 'Voy directamente a descubrir qué ocurre.', trait: 'audaz', sub: 'Decisión impulsiva y valiente' },
+        { id: '1b', text: 'Me acerco con cuidado, por si alguien necesita ayuda.', trait: 'protector', sub: 'Decisión empática y prudente' },
+        { id: '1c', text: 'Observo las huellas para averiguar qué es.', trait: 'curioso', sub: 'Decisión analítica y observadora' }
+      ]
+    },
+    {
+      id: 'q2',
+      text: 'Un Pokémon salvaje bloquea tu camino. ¿Cómo reaccionas?',
+      options: [
+        { id: '2a', text: 'Lo desafío. ¡Quiero demostrar mi fuerza!', trait: 'audaz', sub: 'Decisión competitiva y enérgica' },
+        { id: '2b', text: 'Intento ganar su confianza.', trait: 'protector', sub: 'Decisión cercana y comprensiva' },
+        { id: '2c', text: 'Estudio su comportamiento antes de actuar.', trait: 'curioso', sub: 'Decisión reflexiva y estratégica' }
+      ]
+    }
+  ],
+
+  // Fase 2: Escenarios y caminos
+  pathIntro: '¡Interesante! Tus decisiones dicen bastante sobre ti. Ahora debes elegir dónde comenzará tu aventura.',
+  paths: [
+    {
+      id: 'forest',
+      name: 'Bosque',
+      title: 'Bosque Frondoso',
+      desc: 'Senderos ocultos, naturaleza y Pokémon misteriosos.',
+      theme: 'forest',
+      color: '#1b5e20',
+      candidates: [
+        { dex: 1, affinity: 'protector', name: 'Bulbasaur' },
+        { dex: 25, affinity: 'audaz', name: 'Pikachu' },
+        { dex: 133, affinity: 'curioso', name: 'Eevee' },
+        { dex: 10, affinity: 'curioso', name: 'Caterpie' },
+        { dex: 12, affinity: 'protector', name: 'Butterfree' },
+        { dex: 43, affinity: 'protector', name: 'Oddish' },
+        { dex: 69, affinity: 'curioso', name: 'Bellsprout' },
+        { dex: 123, affinity: 'audaz', name: 'Scyther' },
+        { dex: 127, affinity: 'audaz', name: 'Pinsir' }
+      ]
+    },
+    {
+      id: 'mountain',
+      name: 'Montaña',
+      title: 'Montaña Rocosa',
+      desc: 'Terrenos difíciles, rocas y aventuras intensas.',
+      theme: 'mountain',
+      color: '#bf360c',
+      candidates: [
+        { dex: 4, affinity: 'audaz', name: 'Charmander' },
+        { dex: 37, affinity: 'curioso', name: 'Vulpix' },
+        { dex: 56, affinity: 'audaz', name: 'Mankey' },
+        { dex: 58, affinity: 'protector', name: 'Growlithe' },
+        { dex: 66, affinity: 'audaz', name: 'Machop' },
+        { dex: 74, affinity: 'protector', name: 'Geodude' },
+        { dex: 77, affinity: 'curioso', name: 'Ponyta' },
+        { dex: 95, affinity: 'curioso', name: 'Onix' }
+      ]
+    },
+    {
+      id: 'lake',
+      name: 'Lago',
+      title: 'Lago Cristalino',
+      desc: 'Aguas profundas, calma y criaturas sorprendentes.',
+      theme: 'lake',
+      color: '#0d47a1',
+      candidates: [
+        { dex: 7, affinity: 'protector', name: 'Squirtle' },
+        { dex: 54, affinity: 'curioso', name: 'Psyduck' },
+        { dex: 60, affinity: 'audaz', name: 'Poliwag' },
+        { dex: 79, affinity: 'curioso', name: 'Slowpoke' },
+        { dex: 116, affinity: 'audaz', name: 'Horsea' },
+        { dex: 120, affinity: 'curioso', name: 'Staryu' },
+        { dex: 129, affinity: 'audaz', name: 'Magikarp' },
+        { dex: 131, affinity: 'protector', name: 'Lapras' }
+      ]
+    }
+  ],
+
+  // Fase 3: Las Pokébolas misteriosas
+  pokeballsIntro: 'En este lugar hay tres Pokémon que podrían acompañarte. Sus Pokébolas están preparadas, pero solo puedes elegir una.',
+
+  // Configuración de pesos (70% afinidad, 30% sorpresa)
+  config: {
+    weightAffinity: 0.70,
+    weightSurprise: 0.30
+  },
+
+  /**
+   * Genera los 3 Pokémon asignados a las Pokébolas sin duplicados.
+   * Aplica un 70% de peso a Pokémon con afinidad compatible con las respuestas
+   * y un 30% a opciones alternativas de sorpresa dentro del camino.
+   */
+  generatePokeballs(pathId, userAffinities) {
+    const path = this.paths.find(p => p.id === pathId) || this.paths[0];
+    const pool = path.candidates.filter(c => {
+      const p = G.DEX_BY && G.DEX_BY[c.dex];
+      return p && (!p.disabled || p.enabled) && G.SPRITE_META && G.SPRITE_META[c.dex];
+    });
+
+    if (!pool.length) {
+      return [
+        { dex: 1, affinity: 'protector', name: 'Bulbasaur' },
+        { dex: 4, affinity: 'audaz', name: 'Charmander' },
+        { dex: 7, affinity: 'curioso', name: 'Squirtle' }
+      ];
+    }
+
+    const affinities = Array.isArray(userAffinities) ? userAffinities : [];
+    const wAff = this.config.weightAffinity;
+    const wSur = this.config.weightSurprise;
+
+    // Asignación de pesos según coincidencias de afinidad
+    const scoredPool = pool.map(item => {
+      const matches = affinities.filter(a => a === item.affinity).length;
+      const weight = matches > 0 ? (wAff * (1 + (matches - 1) * 0.5)) : wSur;
+      return { item, weight };
+    });
+
+    // Muestreo ponderado sin reemplazo
+    const chosen = [];
+    const remaining = scoredPool.slice();
+    const countToPick = Math.min(3, remaining.length);
+
+    while (chosen.length < countToPick && remaining.length > 0) {
+      const totalWeight = remaining.reduce((acc, curr) => acc + curr.weight, 0);
+      let r = Math.random() * totalWeight;
+      let selectedIndex = 0;
+      for (let i = 0; i < remaining.length; i++) {
+        r -= remaining[i].weight;
+        if (r <= 0) {
+          selectedIndex = i;
+          break;
+        }
+      }
+      chosen.push(remaining[selectedIndex].item);
+      remaining.splice(selectedIndex, 1);
+    }
+
+    // Relleno seguro sin duplicados si hiciera falta
+    while (chosen.length < 3) {
+      const fallbackList = G.STARTERS || [];
+      const extra = fallbackList.find(s => !chosen.some(c => c.dex === s.dex));
+      if (extra) {
+        chosen.push({ dex: extra.dex, affinity: 'audaz', name: (G.DEX_BY[extra.dex] || {}).name || 'Pokémon' });
+      } else {
+        break;
+      }
+    }
+
+    return chosen;
+  },
+
+  /**
+   * Genera el mensaje personalizado del Profesor Oak para la pantalla de revelación.
+   */
+  getExplanation(mon, primaryTrait, pathId) {
+    const path = this.paths.find(p => p.id === pathId) || this.paths[0];
+    const pathName = path.name;
+    const trait = (primaryTrait || 'audaz').toLowerCase();
+
+    const explanations = {
+      audaz: [
+        `Tu valentía y tu determinación conectaron profundamente con ${mon.name} en la ${pathName}. ¡Están listos para enfrentar cualquier desafío!`,
+        `Ese espíritu intrépido y competitivo resonó con la energía de ${mon.name}. ¡Juntos serán una fuerza imparable!`,
+        `No dudas ante el peligro, y ${mon.name} reconoció de inmediato tu coraje en la ${pathName}. ¡Una gran leyenda comienza aquí!`
+      ],
+      protector: [
+        `Tu empatía y tu deseo de proteger a los demás tocaron el corazón de ${mon.name} en el ${pathName}. ¡Formarán un equipo inseparable!`,
+        `La calma y lealtad que transmites hicieron que ${mon.name} confiara en ti sin dudarlo. ¡Cuidarán el uno del otro en cada combate!`,
+        `Tu nobleza y sentido del compañerismo conectaron de inmediato con ${mon.name}. ¡Su vínculo será su mayor fortaleza!`
+      ],
+      curioso: [
+        `Tu curiosidad aguda y tu mente estratégica fascinaron a ${mon.name} en el ${pathName}. ¡Descubrirán juntos todos los secretos del camino!`,
+        `Observas los detalles donde otros no ven nada. ${mon.name} sintió esa inteligencia y decidió acompañarte.`,
+        `Tu espíritu explorador y analítico encaja a la perfección con la naturaleza de ${mon.name}. ¡Aprenderán y evolucionarán juntos!`
+      ]
+    };
+
+    const list = explanations[trait] || explanations.audaz;
+    const idx = (mon.dex + (pathId ? pathId.length : 0)) % list.length;
+    return list[idx];
+  }
 };
