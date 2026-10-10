@@ -24,6 +24,10 @@
   --shadow: #0a1430;
   --r1: #9fb1c9; --r2: #5fe08a; --r3: #4fb4ff; --r4: #c47bff; --r5: #ffcb3d;
   --font: 'Pixelify', 'Segoe UI', system-ui, sans-serif;
+  --sat: env(safe-area-inset-top, 0px);
+  --sar: env(safe-area-inset-right, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left, 0px);
 }
 
 * { box-sizing: border-box; }
@@ -436,7 +440,10 @@ label { display: block; font-size: 14px; color: var(--muted); margin: 8px 0 4px;
   #menu-partner { height: min(30vh, 200px); width: auto; }
 }
 .topbar {
-  position: fixed; top: 14px; right: 16px; z-index: 25;
+  position: fixed;
+  top: max(14px, calc(10px + var(--sat)));
+  right: max(16px, calc(12px + var(--sar)));
+  z-index: 25;
   display: flex; gap: 10px; align-items: center;
 }
 .pill {
@@ -892,3 +899,28 @@ a.btn { text-decoration: none; display: inline-block; color: var(--ink); }
 .sup-tab tr.tot td { font-weight: 700; color: var(--gold); border-bottom: 0; }
 #btn-support span { margin-left: 2px; }
 @media (max-height: 520px) { #btn-support span { display: none; } }
+
+/* ================= PWA y Modo Standalone ================= */
+@media all and (display-mode: standalone), (display-mode: fullscreen) {
+  body {
+    -webkit-user-select: none;
+    user-select: none;
+    padding-top: var(--sat);
+    padding-bottom: var(--sab);
+    padding-left: var(--sal);
+    padding-right: var(--sar);
+  }
+}
+
+body.is-standalone #pwa-install-wrap,
+body.is-standalone #btn-pwa-install-settings {
+  display: none !important;
+}
+
+#modal-pwa-ios {
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+#modal-pwa-ios.hidden {
+  display: none !important;
+}

@@ -21,6 +21,7 @@ loadScripts([
   'js/core/audio.js',
   'js/core/input.js',
   'js/core/touch.js',
+  'js/core/pwa.js',
   'js/core/sprites.js',
   'js/core/camera.js',
   'js/core/guard.js',
@@ -378,9 +379,50 @@ test('G.OakFlow: generación de 3 Pokébolas ponderadas (70% afinidad, 30% sorpr
   assert.ok(expProt.includes('Bulbasaur'), 'Explicación debe incluir el nombre del Pokémon');
 });
 
+// 16. Configuración PWA (Manifest, Service Worker e Instalación)
+test('PWA: validación de Manifest, Service Worker y módulo G.PWA', () => {
+  const fs = require('fs');
+  const path = require('path');
+
+  // 1. Validar manifest.webmanifest
+  const manifestPath = path.join(__dirname, '..', 'manifest.webmanifest');
+  assert.ok(fs.existsSync(manifestPath), 'manifest.webmanifest debe existir');
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+
+  assert.strictEqual(manifest.name, 'Super Batalla Pokémon', 'Nombre debe ser "Super Batalla Pokémon"');
+  assert.strictEqual(manifest.short_name, 'Batalla Pokémon', 'Nombre corto debe ser "Batalla Pokémon"');
+  assert.strictEqual(manifest.display, 'standalone', 'display debe ser "standalone"');
+  assert.strictEqual(manifest.id, 'super-batalla-pokemon', 'id debe ser "super-batalla-pokemon"');
+  assert.ok(manifest.start_url, 'start_url debe estar definida');
+  assert.ok(manifest.scope, 'scope debe estar definido');
+
+  // Validar iconos
+  assert.ok(Array.isArray(manifest.icons) && manifest.icons.length >= 3, 'Debe haber al menos 3 iconos');
+  for (const ic of manifest.icons) {
+    const iconFile = path.join(__dirname, '..', ic.src);
+    assert.ok(fs.existsSync(iconFile), `Icono no encontrado en disco: ${ic.src}`);
+    const stat = fs.statSync(iconFile);
+    assert.ok(stat.size > 0, `Icono vacío: ${ic.src}`);
+  }
+
+  // 2. Validar sw.js
+  const swPath = path.join(__dirname, '..', 'sw.js');
+  assert.ok(fs.existsSync(swPath), 'sw.js debe existir');
+  const swContent = fs.readFileSync(swPath, 'utf8');
+  assert.ok(swContent.includes('CODE_CACHE') && swContent.includes('ART_CACHE'), 'sw.js debe tener cachés separadas');
+  assert.ok(swContent.includes('skipWaiting'), 'sw.js debe llamar a skipWaiting');
+
+  // 3. Validar módulo G.PWA
+  assert.ok(G.PWA, 'G.PWA debe estar definido');
+  assert.strictEqual(typeof G.PWA.init, 'function', 'G.PWA.init debe ser función');
+  assert.strictEqual(typeof G.PWA.isStandalone, 'function', 'G.PWA.isStandalone debe ser función');
+  assert.strictEqual(typeof G.PWA.isIos, 'function', 'G.PWA.isIos debe ser función');
+});
+
 console.log('\n===========================================');
 console.log(`RESULTADOS: ${passed} pasadas, ${failed} falladas.`);
 console.log('===========================================\n');
 
 process.exit(failed > 0 ? 1 : 0);
+
 

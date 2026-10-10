@@ -1,47 +1,90 @@
-/* ============ sw.js — para poder instalar el juego como app ============
- * - Código del juego (html, js, css): primero la red, así cada actualización
- *   llega al momento; si no hay conexión, la última copia guardada.
- * - Sprites, iconos y fuente: no cambian nunca, se sirven de la caché
- *   (se van guardando según se usan: no se descarga todo de golpe).
- * - Firebase y demás servicios de fuera no se tocan.
+/* ============ sw.js — Service Worker para Super Batalla Pokémon PWA ============
+ * Estrategia de caché:
+ * - Código y estructura (HTML, CSS, JS, manifest): Network-first con fallback a caché.
+ * - Recursos estáticos inmutables (sprites, fuentes, iconos): Cache-first.
+ * - Las peticiones no-GET, llamadas a APIs externas o dinámicas nunca se interceptan.
+ * - Limpieza de cachés antiguas en la activación y skipWaiting en la instalación.
  */
-const CODE = 'ps-code-v1', ART = 'ps-art-v1';
+const CODE_CACHE = 'sbp-code-v2';
+const ART_CACHE = 'sbp-art-v2';
 
-self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CODE).then(c => c.addAll(['./', './index.html', './css/style.css', './manifest.webmanifest'])).catch(() => {}));
+const PRECACHE_ASSETS = [
+  './',
+  './index.html',
+  './css/style.css',
+  './manifest.webmanifest',
+  './manifest.json',
+  './assets/icons/icon-180.png',
+  './assets/icons/icon-192.png',
+  './assets/icons/icon-512.png',
+  './assets/icons/icon-maskable-512.png',
+  './assets/fonts/PixelifySans.ttf'
+];
+
+self.addEventListener('install', event => {
+  event.waitUntil(
+    caches.open(CODE_CACHE).then(cache => {
+      return cache.addAll(PRECACHE_ASSETS);
+    }).catch(err => {
+      console.warn('[SW] Precache parcial:', err);
+    })
+  );
   self.skipWaiting();
 });
 
-self.addEventListener('activate', e => {
-  e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CODE && k !== ART).map(k => caches.delete(k))))
-    .then(() => self.clients.claim()));
+self.addEventListener('activate', event => {
+  event.waitUntil(
+    caches.keys().then(keys => {
+      return Promise.all(
+        keys.filter(k => k !== CODE_CACHE && k !== ART_CACHE).map(k => caches.delete(k))
+      );
+    }).then(() => self.clients.claim())
+  );
 });
 
-self.addEventListener('fetch', e => {
-  const req = e.request;
+self.addEventListener('fetch', event => {
+  const req = event.request;
   if (req.method !== 'GET') return;
+
   const url = new URL(req.url);
   if (url.origin !== location.origin) return;
-  const art = /\/assets\/(pokemon|icons|fonts)\//.test(url.pathname);
-  if (art) {
-    e.respondWith(caches.open(ART).then(async c => {
-      const hit = await c.match(req);
-      if (hit) return hit;
-      const res = await fetch(req);
-      if (res.ok) c.put(req, res.clone());
-      return res;
-    }));
+
+  // Recursos de arte/sprites/fuentes/iconos: Cache-first
+  const isStaticArt = /\/assets\/(pokemon|icons|fonts)\//.test(url.pathname);
+  if (isStaticArt) {
+    event.respondWith(
+      caches.open(ART_CACHE).then(async cache => {
+        const hit = await cache.match(req);
+        if (hit) return hit;
+        try {
+          const res = await fetch(req);
+          if (res.ok) cache.put(req, res.clone());
+          return res;
+        } catch {
+          return hit || Response.error();
+        }
+      })
+    );
     return;
   }
-  e.respondWith(fetch(req).then(res => {
-    if (res.ok) { const copy = res.clone(); caches.open(CODE).then(c => c.put(req, copy)); }
-    return res;
-  }).catch(async () => {
-    // Sin red: la copia guardada. La página de inicio sólo sirve de respaldo
-    // al abrir la web (nunca en lugar de un script o una imagen).
-    const hit = await caches.match(req);
-    if (hit) return hit;
-    if (req.mode === 'navigate') return (await caches.match('./index.html')) || Response.error();
-    return Response.error();
-  }));
+
+  // Código, HTML y estilos: Network-first con fallback a caché
+  event.respondWith(
+    fetch(req)
+      .then(res => {
+        if (res.ok) {
+          const copy = res.clone();
+          caches.open(CODE_CACHE).then(cache => cache.put(req, copy));
+        }
+        return res;
+      })
+      .catch(async () => {
+        const hit = await caches.match(req);
+        if (hit) return hit;
+        if (req.mode === 'navigate') {
+          return (await caches.match('./index.html')) || (await caches.match('./')) || Response.error();
+        }
+        return Response.error();
+      })
+  );
 });

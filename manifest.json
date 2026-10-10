@@ -1,0 +1,41 @@
+{
+  "name": "Super Batalla Pokémon",
+  "short_name": "Batalla Pokémon",
+  "description": "Fan game gratuito de supervivencia Pokémon: elige tu compañero, sobrevive a las hordas y evoluciona en solitario o cooperativo. Sin anuncios.",
+  "lang": "es",
+  "start_url": "./",
+  "scope": "./",
+  "id": "super-batalla-pokemon",
+  "display": "standalone",
+  "display_override": ["standalone", "window-controls-overlay", "minimal-ui"],
+  "orientation": "landscape-primary",
+  "background_color": "#0a1430",
+  "theme_color": "#0a1430",
+  "categories": ["games", "action", "roleplaying"],
+  "icons": [
+    {
+      "src": "assets/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "assets/icons/icon-180.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

@@ -72,9 +72,29 @@ async function runBrowserTests() {
     }
 
     // -------------------------------------------------------------
-    // 2. MODO INVITADO
+    // 2. VERIFICACIÓN PWA (MANIFEST, TAGS, BOTÓN INSTALACIÓN)
     // -------------------------------------------------------------
-    console.log('\n[2/7] Probando inicio como invitado (Guest Mode)...');
+    console.log('\n[2/8] Verificando integración PWA en el navegador...');
+    const manifestHref = await page.locator('link[rel="manifest"]').getAttribute('href');
+    assert.strictEqual(manifestHref, 'manifest.webmanifest', 'Tag link rel="manifest" debe apuntar a manifest.webmanifest');
+
+    const manifestRes = await page.request.get(`${BASE_URL}/manifest.webmanifest`);
+    assert.strictEqual(manifestRes.status(), 200, 'manifest.webmanifest debe responder 200');
+    const manifestJson = await manifestRes.json();
+    assert.strictEqual(manifestJson.name, 'Super Batalla Pokémon', 'Nombre en manifest debe ser Super Batalla Pokémon');
+    console.log('  Manifest cargado y validado correctamente.');
+
+    const installBtnLogin = page.locator('#btn-pwa-install');
+    assert.ok(await installBtnLogin.count() > 0, 'Botón de instalación PWA en login (#btn-pwa-install) debe existir en el DOM');
+    const installBtnSettings = page.locator('#btn-pwa-install-settings');
+    assert.ok(await installBtnSettings.count() > 0, 'Botón de instalación PWA en ajustes (#btn-pwa-install-settings) debe existir en el DOM');
+    const iosModal = page.locator('#modal-pwa-ios');
+    assert.ok(await iosModal.count() > 0, 'Modal de ayuda PWA iOS debe existir en el DOM');
+
+    // -------------------------------------------------------------
+    // 3. MODO INVITADO
+    // -------------------------------------------------------------
+    console.log('\n[3/8] Probando inicio como invitado (Guest Mode)...');
     const guestBtn = page.locator('#btn-guest');
     await guestBtn.waitFor({ state: 'visible', timeout: 5000 });
     await guestBtn.click();
