@@ -1,6 +1,18 @@
 {
+  "name": "pokemon-battle",
+  "version": "1.0.0",
+  "description": "PokéSurvivor — Local & Web Edition",
+  "scripts": {
+    "build": "node tools/build.js",
+    "test": "node tests/unit.test.js && node tests/gameplay-sim.test.js",
+    "test:unit": "node tests/unit.test.js",
+    "test:sim": "node tests/gameplay-sim.test.js",
+    "test:browser": "node tests/browser.test.js"
+  },
   "dependencies": {
-    "playwright": "^1.64.0",
     "terser": "^5.51.2"
+  },
+  "devDependencies": {
+    "playwright": "^1.64.0"
   }
 }
