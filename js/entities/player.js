@@ -71,9 +71,9 @@ G.Player = class Player {
   /** Segundos que hay que estar junto a un compañero caído para levantarlo. */
   static get REVIVE_TIME() { return 3; }
 
-  // (×2 desde 2026-10-10: se subía de nivel demasiado rápido.)
+  // Curva de experiencia desacoplada (ver js/data/balance.js)
   static xpFor(level) {
-    return Math.floor((8 + level * 6 + Math.pow(level, 1.75) * 1.6) * 2);
+    return G.Balance ? G.Balance.playerXp(level) : Math.floor((8 + level * 6 + Math.pow(level, 1.75) * 1.6) * 2);
   }
 
   cy() { return this.y; }

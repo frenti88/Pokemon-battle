@@ -1,0 +1,301 @@
+/* ============ unit.test.js — suite de pruebas unitarias automatizadas ============ */
+const assert = require('assert');
+const { createEnvironment, loadScripts } = require('./test-env');
+
+console.log('--- INICIANDO PRUEBAS UNITARIAS DE POKÉSURVIVOR ---');
+
+createEnvironment();
+
+// Carga ordenada de scripts requeridos
+loadScripts([
+  'js/core/util.js',
+  'js/core/i18n.js',
+  'js/core/settings.js',
+  'js/data/music.js',
+  'js/data/pokedex.js',
+  'js/data/sprites-meta.js',
+  'js/data/balance.js',
+  'js/core/registry.js',
+  'js/core/firebase-config.js',
+  'js/core/db.js',
+  'js/core/audio.js',
+  'js/core/input.js',
+  'js/core/touch.js',
+  'js/core/sprites.js',
+  'js/core/camera.js',
+  'js/core/guard.js',
+  'js/data/moves.js',
+  'js/data/types.js',
+  'js/data/starters.js',
+  'js/data/enemies.js',
+  'js/data/upgrades.js',
+  'js/data/items.js',
+  'js/data/missions.js',
+  'js/data/achievements.js',
+  'js/world/tiles.js',
+  'js/world/world.js',
+  'js/entities/vfx.js',
+  'js/entities/fx.js',
+  'js/entities/projectile.js',
+  'js/entities/enemy.js',
+  'js/entities/pickup.js',
+  'js/entities/player.js',
+  'js/systems/combat.js',
+  'js/systems/spawner.js',
+  'js/systems/levelup.js',
+  'js/systems/weather.js'
+]);
+
+let passed = 0;
+let failed = 0;
+
+function test(name, fn) {
+  try {
+    fn();
+    console.log(`  ✓ ${name}`);
+    passed++;
+  } catch (err) {
+    console.error(`  ✗ ${name}`);
+    console.error(`    ${err.message}`);
+    failed++;
+  }
+}
+
+// 1. Aislamiento de Firebase
+test('Firebase está aislado en entorno local (G.FIREBASE_CONFIG es null)', () => {
+  assert.strictEqual(G.FIREBASE_CONFIG, null, 'G.FIREBASE_CONFIG debe ser null en modo local');
+  assert.strictEqual(G.DB.mode, 'local', 'G.DB.mode debe inicializarse en local');
+});
+
+// 2. Catálogo de Pokémon e Integridad
+test('Catálogo de Pokédex contiene 966+ entradas con tipos y estadísticas válidas', () => {
+  assert.ok(Array.isArray(G.DEX), 'G.DEX debe ser un array');
+  assert.ok(G.DEX.length >= 966, `G.DEX tiene ${G.DEX.length} entradas, se esperaban >= 966`);
+
+  for (const mon of G.DEX) {
+    assert.ok(mon.dex > 0, `dex inválido: ${mon.dex}`);
+    assert.ok(typeof mon.name === 'string' && mon.name.length > 0, `Nombre inválido en #${mon.dex}`);
+    assert.ok(Array.isArray(mon.types) && mon.types.length >= 1, `Tipos inválidos en #${mon.dex}`);
+    assert.ok(mon.hp > 0, `HP inválido en #${mon.dex}`);
+    assert.ok(mon.spd > 0, `Velocidad inválida en #${mon.dex}`);
+    assert.ok(mon.atk > 0, `Ataque inválido en #${mon.dex}`);
+    assert.ok(mon.rarity >= 1 && mon.rarity <= 5, `Rareza inválida en #${mon.dex}`);
+  }
+});
+
+// 3. Starters y Referencias
+test('Starters válidos y referenciados en Pokédex', () => {
+  assert.ok(Array.isArray(G.STARTERS), 'G.STARTERS debe ser un array');
+  assert.ok(G.STARTERS.length >= 29, `Esperados >= 29 starters, encontrados: ${G.STARTERS.length}`);
+  for (const s of G.STARTERS) {
+    const mon = G.DEX_BY[s.dex];
+    assert.ok(mon, `Starter #${s.dex} no existe en DEX_BY`);
+    assert.ok(s.start, `Starter #${s.dex} no tiene startMove`);
+    assert.ok(G.Moves.BY_ID[s.start], `startMove ${s.start} de #${s.dex} no existe en Moves.BY_ID`);
+  }
+});
+
+// 4. Efectividad de Tipos (Suavizada para formato Survivor)
+test('Cálculo de efectividad de tipos elemental suavizada', () => {
+  assert.ok(G.Types, 'G.Types debe existir');
+  // Agua vs Fuego = 1.6 (super efectivo suavizado)
+  assert.strictEqual(G.Types.mult('water', ['fire']), 1.6);
+  assert.strictEqual(G.Types.label(1.6), 'super');
+  // Fuego vs Agua = 0.6 (poco efectivo suavizado)
+  assert.strictEqual(G.Types.mult('fire', ['water']), 0.6);
+  assert.strictEqual(G.Types.label(0.6), 'weak');
+  // Eléctrico vs Tierra = 0.3 (inmunidad convertida a resistencia fuerte)
+  assert.strictEqual(G.Types.mult('electric', ['ground']), 0.3);
+  // Planta vs Agua/Tierra = clamp 2.4 (doble debilidad)
+  assert.strictEqual(G.Types.mult('grass', ['water', 'ground']), 2.4);
+  // Normal vs Normal = 1.0 (neutro)
+  assert.strictEqual(G.Types.mult('normal', ['normal']), 1.0);
+  assert.strictEqual(G.Types.label(1.0), null);
+});
+
+// 5. Matemáticas, Distancias y Colisiones
+test('Operaciones vectoriales y distancias en G.U', () => {
+  assert.strictEqual(G.U.dist(0, 0, 3, 4), 5);
+  assert.strictEqual(G.U.dist2(0, 0, 3, 4), 25);
+
+  const [nx, ny] = G.U.norm(10, 0);
+  assert.strictEqual(nx, 1);
+  assert.strictEqual(ny, 0);
+
+  const [dx, dy] = G.U.norm(3, 3);
+  assert.ok(Math.abs(Math.hypot(dx, dy) - 1.0) < 1e-5, 'El vector normalizado diagonal debe tener longitud 1');
+
+  const [zx, zy] = G.U.norm(0, 0);
+  assert.strictEqual(zx, 0);
+  assert.strictEqual(zy, 0);
+
+  assert.strictEqual(G.U.clamp(15, 0, 10), 10);
+  assert.strictEqual(G.U.clamp(-5, 0, 10), 0);
+  assert.strictEqual(G.U.clamp(5, 0, 10), 5);
+});
+
+// 6. Configuración de Movimientos y Familias
+test('Catálogo de movimientos contiene las 15 familias requeridas', () => {
+  const families = new Set(G.Moves.ALL.map(m => m.kind));
+  const expected = [
+    'projectile', 'melee', 'beam', 'orbit', 'nova', 'aura', 'buff',
+    'boomerang', 'chain', 'mine', 'meteor', 'turret', 'dash', 'trail', 'cone'
+  ];
+  for (const fam of expected) {
+    assert.ok(families.has(fam), `Falta la familia de movimiento: ${fam}`);
+  }
+});
+
+// 7. Instanciación y Escalado de Movimientos
+test('Instanciación de movimientos y mejora de niveles', () => {
+  const m = G.Moves.instance('vine-whip', 1);
+  assert.strictEqual(m.id, 'vine-whip');
+  assert.strictEqual(m.lvl, 1);
+  const dmg1 = m.dmg;
+
+  G.Moves.levelUp(m);
+  assert.strictEqual(m.lvl, 2);
+  assert.ok(m.dmg >= dmg1, 'El daño debe aumentar o mantenerse al subir de nivel');
+});
+
+// 8. Fórmulas de Experiencia y Progresión
+test('Curva de experiencia del jugador e incremento monótono', () => {
+  let prevXp = 0;
+  for (let lvl = 1; lvl <= 50; lvl++) {
+    const xp = G.Player.xpFor(lvl);
+    assert.ok(typeof xp === 'number' && !isNaN(xp) && isFinite(xp), `xp inválido en nivel ${lvl}`);
+    assert.ok(xp > prevXp, `La experiencia requerida en nivel ${lvl} (${xp}) debe ser mayor que en ${lvl-1} (${prevXp})`);
+    prevXp = xp;
+  }
+});
+
+// 9. Persistencia Local (LocalStorage y Serialización)
+test('Serialización y migración de partidas en DB', () => {
+  G.DB.playAsGuest();
+  assert.ok(G.DB.save, 'G.DB.save debe existir');
+  assert.strictEqual(G.DB.save.name, 'Invitado');
+  assert.strictEqual(G.DB.save.coins, 500);
+
+  const save = G.DB.save;
+  save.partner = 25;
+  save.owned[25] = { at: Date.now(), from: 'starter' };
+
+  assert.ok(G.DB.owns(25), 'Debe poseer a Pikachu (25)');
+  assert.ok(!G.DB.owns(9999), 'No debe poseer id inexistente');
+});
+
+// 10. Desacoplamiento de Dificultad (G.Balance)
+test('G.Balance contiene parámetros configurables y métodos de exportación', () => {
+  assert.ok(G.Balance, 'G.Balance debe estar definido');
+  assert.strictEqual(G.Balance.get('maxEnemies'), 64);
+  assert.strictEqual(G.Balance.get('spawnDensity'), 0.24);
+
+  // Modificación y lectura
+  G.Balance.set('maxEnemies', 80);
+  assert.strictEqual(G.Balance.get('maxEnemies'), 80);
+  assert.strictEqual(G.Spawner.CAP, 80, 'G.Spawner.CAP debe reflejar el valor dinámico de G.Balance');
+
+  // Restaurar
+  G.Balance.reset();
+  assert.strictEqual(G.Balance.get('maxEnemies'), 64);
+  assert.strictEqual(G.Spawner.CAP, 64);
+});
+
+// 11. Extensibilidad: Registro de nuevo Pokémon con política de Fallback
+test('PokemonRegistry: registrar personaje custom y aplicar fallback si carece de sprites propios', () => {
+  assert.ok(G.PokemonRegistry, 'PokemonRegistry debe estar definido');
+  const customId = 9999;
+
+  const res = G.PokemonRegistry.register({
+    id: customId,
+    name: 'Glitchmon',
+    types: ['electric', 'psychic'],
+    hp: 120,
+    spd: 110,
+    atk: 1.25,
+    fallbackDex: 25 // Usa a Pikachu como fallback gráfico
+  });
+
+  assert.strictEqual(res, true, 'El registro de Pokémon debe ser exitoso');
+  assert.ok(G.PokemonRegistry.has(customId), 'PokemonRegistry debe contener al Pokémon registrado');
+
+  const mon = G.PokemonRegistry.get(customId);
+  assert.strictEqual(mon.name, 'Glitchmon');
+  assert.strictEqual(mon.fallbackDex, 25);
+
+  // Verificación de fallback de sprite sin lanzar excepciones
+  const m = G.Sprites.animMeta(customId, 'Idle');
+  assert.ok(m, 'animMeta debe devolver la geometría del fallback');
+  const sheet = G.Sprites.sheet(customId, 'Idle');
+  assert.ok(sheet, 'sheet debe devolver la instancia del fallback');
+});
+
+// 12. Extensibilidad: Registro de nuevo Movimiento y Familia de Ataque
+test('MoveRegistry: registrar movimiento custom y verificar integración', () => {
+  assert.ok(G.MoveRegistry, 'MoveRegistry debe estar definido');
+
+  const res = G.MoveRegistry.register({
+    id: 'cyber-beam',
+    name: 'Rayo Cibernético',
+    type: 'electric',
+    kind: 'beam',
+    cd: 1.2,
+    dmg: 2.5,
+    desc: 'Dispara un potente haz de energía binaria.'
+  });
+
+  assert.strictEqual(res, true, 'El registro de movimiento debe ser exitoso');
+  assert.ok(G.MoveRegistry.has('cyber-beam'));
+  assert.ok(G.Moves.BY_ID['cyber-beam'], 'Debe integrarse en G.Moves.BY_ID');
+
+  const inst = G.Moves.instance('cyber-beam', 1);
+  assert.strictEqual(inst.id, 'cyber-beam');
+  assert.strictEqual(inst.dmg, 2.5);
+});
+
+// 13. Extensibilidad: Registro de Escenario
+test('StageRegistry: registrar escenario y bioma custom', () => {
+  assert.ok(G.StageRegistry, 'StageRegistry debe estar definido');
+
+  const res = G.StageRegistry.register({
+    id: 'space-rift',
+    name: 'Grieta Estelar',
+    type: 'arena',
+    liquid: 'spark',
+    music: 'rift'
+  });
+
+  assert.strictEqual(res, true);
+  assert.ok(G.StageRegistry.get('space-rift'));
+  assert.strictEqual(G.StageRegistry.get('space-rift').name, 'Grieta Estelar');
+});
+
+// 14. Extensibilidad: Registro de Modo de Juego
+test('ModeRegistry: registrar modo custom y ciclo de vida', () => {
+  assert.ok(G.ModeRegistry, 'ModeRegistry debe estar definido');
+  assert.strictEqual(G.ModeRegistry.active().id, 'classic');
+
+  let started = false;
+  G.ModeRegistry.register({
+    id: 'boss-rush',
+    name: 'Boss Rush Mode',
+    desc: 'Combates consecutivos contra todos los jefes.',
+    onStart() { started = true; }
+  });
+
+  assert.ok(G.ModeRegistry.get('boss-rush'));
+  G.ModeRegistry.setActive('boss-rush');
+  assert.strictEqual(G.ModeRegistry.active().id, 'boss-rush');
+  G.ModeRegistry.active().onStart();
+  assert.strictEqual(started, true);
+
+  // Volver al modo classic
+  G.ModeRegistry.setActive('classic');
+  assert.strictEqual(G.ModeRegistry.active().id, 'classic');
+});
+
+console.log('\n===========================================');
+console.log(`RESULTADOS: ${passed} pasadas, ${failed} falladas.`);
+console.log('===========================================\n');
+
+process.exit(failed > 0 ? 1 : 0);

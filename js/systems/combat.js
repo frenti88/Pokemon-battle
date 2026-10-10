@@ -39,6 +39,13 @@ G.Combat = (() => {
   }
 
   function run(pl, m) {
+    if (G.MoveRegistry && G.MoveRegistry.getFamily(m.kind)) {
+      G.MoveRegistry.getFamily(m.kind)(pl, m, {
+        fireProjectiles, melee, beam, nova, aura, buff,
+        boomerang, chain, mines, meteors, turret, dash, trailPatch, cone
+      });
+      return;
+    }
     switch (m.kind) {
       case 'projectile': fireProjectiles(pl, m); break;
       case 'melee':      melee(pl, m); break;

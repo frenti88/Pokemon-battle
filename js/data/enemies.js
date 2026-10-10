@@ -153,7 +153,8 @@ G.Enemies = (() => {
       if (r) { r.behavior = 'runner'; r.spd = Math.round(r.spd * 1.6); r.hp = Math.round(r.hp * 0.7); }
     }
     const used = new Set();
-    bosses = BOSS_SLOTS.map(slot => {
+    const slots = (G.Balance && G.Balance.get('bossSlots')) || BOSS_SLOTS;
+    bosses = slots.map(slot => {
       const ok = p => !p.leg && G.SPRITE_META[p.dex] && !used.has(p.dex);
       let pool = G.DEX.filter(p => ok(p) && p.bst >= slot.bst[0] && p.bst <= slot.bst[1]);
       if (!pool.length) pool = G.DEX.filter(p => ok(p) && p.bst >= 580);

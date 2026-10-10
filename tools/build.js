@@ -25,19 +25,38 @@ const joined = files.map(f => `/* ${f} */\n` + fs.readFileSync(path.join(ROOT, f
 const tmp = path.join(ROOT, 'tools', 'cache', 'app.js');
 fs.mkdirSync(path.dirname(tmp), { recursive: true });
 fs.writeFileSync(tmp, joined);
-const outJs = path.join(ROOT, 'js', 'app.min.js');
-const npx = process.platform === 'win32' ? 'npx.cmd' : 'npx';
-execFileSync(npx, ['--yes', 'terser@5', tmp, '--compress', 'passes=1', '--mangle', '--comments', 'false', '--ecma', '2020', '-o', outJs],
-  { stdio: 'inherit', shell: process.platform === 'win32' });
-const min = fs.readFileSync(outJs);
-const hash = crypto.createHash('sha1').update(min).digest('hex').slice(0, 10);
+(async () => {
+  const outJs = path.join(ROOT, 'js', 'app.min.js');
+  let min;
+  try {
+    const terser = require('terser');
+    const res = await terser.minify(joined, {
+      compress: { passes: 1 },
+      mangle: true,
+      format: { comments: false },
+      ecma: 2020
+    });
+    fs.writeFileSync(outJs, res.code);
+    min = Buffer.from(res.code, 'utf8');
+  } catch (err) {
+    const localBin = path.join(ROOT, 'node_modules', '.bin', process.platform === 'win32' ? 'terser.cmd' : 'terser');
+    const npx = process.platform === 'win32' ? 'npx.cmd' : 'npx';
+    const bin = fs.existsSync(localBin) ? localBin : npx;
+    const args = bin === npx
+      ? ['--yes', 'terser@5', tmp, '--compress', 'passes=1', '--mangle', '--comments', 'false', '--ecma', '2020', '-o', outJs]
+      : [tmp, '--compress', 'passes=1', '--mangle', '--comments', 'false', '--ecma', '2020', '-o', outJs];
+    execFileSync(bin, args, { stdio: 'inherit', shell: process.platform === 'win32' });
+    min = fs.readFileSync(outJs);
+  }
+  const hash = crypto.createHash('sha1').update(min).digest('hex').slice(0, 10);
 
-let html = dev.slice(0, i) + `<script defer src="js/app.min.js?v=${hash}"></script>` + dev.slice(j + END.length);
-html = html.replace(/<meta name="robots" content="noindex">\s*/, '');
-// --sin-seo: sin canonical/redes/datos estructurados ni enlaces a las páginas
-// (para publicar antes de tener el dominio pokesurvivor.com).
-const SIN_SEO = process.argv.includes('--sin-seo');
-html = SIN_SEO ? html.replace(/<!-- seo:begin -->[\s\S]*?<!-- seo:end -->\n?/g, '') : html.replace(/<!-- seo:(begin|end) -->\n?/g, '');
-html = html.replace(/<!-- dev.html: página fuente[^>]*-->/, '<!-- GENERADO desde dev.html por tools/build.js: no editar a mano (se edita dev.html). -->');
-fs.writeFileSync(OUT, html);
-console.log(`${SIN_SEO ? '[sin SEO] ' : ''}ok: ${files.length} scripts · ${(joined.length / 1024).toFixed(0)} KB -> ${(min.length / 1024).toFixed(0)} KB (app.min.js?v=${hash})`);
+  let html = dev.slice(0, i) + `<script defer src="js/app.min.js?v=${hash}"></script>` + dev.slice(j + END.length);
+  html = html.replace(/<meta name="robots" content="noindex">\s*/, '');
+  // --sin-seo: sin canonical/redes/datos estructurados ni enlaces a las páginas
+  // (para publicar antes de tener el dominio pokesurvivor.com).
+  const SIN_SEO = process.argv.includes('--sin-seo');
+  html = SIN_SEO ? html.replace(/<!-- seo:begin -->[\s\S]*?<!-- seo:end -->\n?/g, '') : html.replace(/<!-- seo:(begin|end) -->\n?/g, '');
+  html = html.replace(/<!-- dev.html: página fuente[^>]*-->/, '<!-- GENERADO desde dev.html por tools/build.js: no editar a mano (se edita dev.html). -->');
+  fs.writeFileSync(OUT, html);
+  console.log(`${SIN_SEO ? '[sin SEO] ' : ''}ok: ${files.length} scripts · ${(joined.length / 1024).toFixed(0)} KB -> ${(min.length / 1024).toFixed(0)} KB (app.min.js?v=${hash})`);
+})();

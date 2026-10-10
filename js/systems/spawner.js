@@ -11,17 +11,13 @@
  * jugáis (ver G.Coop.scaleRate / scaleHp).
  */
 G.Spawner = (() => {
-  // Tope de enemigos a la vez (antes 420: con tantos se ralentizaba). Cuando
-  // se llega al tope, los que siguen saliendo son "élite" (más vida, daño y
-  // experiencia), así la dificultad no baja.
-  const CAP = 64, ELITE_FROM = 0.85;
-  // Menos Pokémon pero más fuertes (la pantalla no se satura): salen ~24% de
-  // los de antes, cada uno con más vida, daño y experiencia.
-  const DENSITY = 0.24, DMG_K = 2.4, XP_K = 5.6;
-  // La resistencia extra crece con la run: al principio ×3,3 y hasta ×5
-  // hacia el minuto 6, cuando ya tienes ataques para tumbarlos.
-  const hpK = t => 3.3 + Math.min(1.7, t / 210);
-  const SHINY_RATE = 1 / 4096;
+  // Parámetros desacoplados (ver js/data/balance.js): conservan valores originales por defecto
+  const getCap = () => (G.Balance ? G.Balance.get('maxEnemies') : 64);
+  const getEliteFrom = () => (G.Balance ? G.Balance.get('eliteThreshold') : 0.85);
+  const getDmgK = () => (G.Balance ? G.Balance.get('enemyDmgMultiplier') : 2.4);
+  const getXpK = () => (G.Balance ? G.Balance.get('enemyXpMultiplier') : 5.6);
+  const hpK = t => (G.Balance ? G.Balance.hpScale(t) : 3.3 + Math.min(1.7, t / 210));
+  const getShinyRate = () => (G.Balance ? G.Balance.get('shinyRate') : 1 / 4096);
   let acc = 0, bossIdx = 0, surgeT = 32, announce = null, announceT = 0, preloadT = 0;
   let forceShiny = 0;           // para pruebas: los N próximos salen shiny
 
@@ -33,7 +29,7 @@ G.Spawner = (() => {
 
   /** Enemigos por segundo según el minuto de la run. */
   function rate(t) {
-    return (1.6 + t * 0.028 + Math.pow(t / 60, 1.6) * 0.5) * DENSITY;
+    return G.Balance ? G.Balance.spawnRate(t) : (1.6 + t * 0.028 + Math.pow(t / 60, 1.6) * 0.5) * 0.24;
   }
 
   function ringPoint(pl, angle) {
@@ -73,7 +69,7 @@ G.Spawner = (() => {
   function rollShiny(dex) {
     if (!G.Sprites.hasShiny(dex)) return false;
     if (forceShiny > 0) { forceShiny--; return true; }
-    return Math.random() < SHINY_RATE;
+    return Math.random() < getShinyRate();
   }
 
   function spawnOne(pl, t, angle) {
@@ -82,8 +78,8 @@ G.Spawner = (() => {
     if (!pt) return null;
     const shiny = rollShiny(def.dex);
     const e = new G.Enemy(def, pt[0], pt[1], scaled(G.Enemies.scale(t), G.Coop.scaleHp(players.length) * hpK(t)));
-    e.dmg *= DMG_K; e.xp = Math.round(e.xp * XP_K);
-    if (G.EnemyMgr.count >= CAP * ELITE_FROM) { e.maxHp = e.hp = Math.round(e.maxHp * 1.6); e.dmg *= 1.25; e.xp = Math.round(e.xp * 1.6); }
+    e.dmg *= getDmgK(); e.xp = Math.round(e.xp * getXpK());
+    if (G.EnemyMgr.count >= getCap() * getEliteFrom()) { e.maxHp = e.hp = Math.round(e.maxHp * 1.6); e.dmg *= 1.25; e.xp = Math.round(e.xp * 1.6); }
     if (shiny) e.makeShiny();
     if (G.Events.golden) e.makeGolden();
     G.EnemyMgr.add(e);
@@ -125,20 +121,22 @@ G.Spawner = (() => {
     const bossFight = G.EnemyMgr.bossAlive();
 
     // --- goteo normal ---
-    if (G.EnemyMgr.count < CAP) {
+    if (G.EnemyMgr.count < getCap()) {
       acc += rate(t) * G.Coop.scaleRate(players.length) * (bossFight ? 0.25 : 1) * dt;
       let n = Math.floor(acc);
       acc -= n;
-      while (n-- > 0 && G.EnemyMgr.count < CAP) spawnOne(anchor(), t);
+      while (n-- > 0 && G.EnemyMgr.count < getCap()) spawnOne(anchor(), t);
     }
 
     // --- marea ---
     if (!bossFight) surgeT -= dt;
     if (surgeT <= 0) {
-      surgeT = G.U.rand(38, 56);
+      const minS = G.Balance ? G.Balance.get('surgeMinInterval') : 38;
+      const maxS = G.Balance ? G.Balance.get('surgeMaxInterval') : 56;
+      surgeT = G.U.rand(minS, maxS);
       const base = Math.random() * 6.2832;
       const target = anchor();
-      const n = Math.min(CAP - G.EnemyMgr.count, Math.round((14 + Math.floor(t / 22)) * G.Coop.scaleRate(players.length) * 0.4));
+      const n = Math.min(getCap() - G.EnemyMgr.count, Math.round((14 + Math.floor(t / 22)) * G.Coop.scaleRate(players.length) * 0.4));
       for (let i = 0; i < n; i++) spawnOne(target, t, base + G.U.rand(-0.55, 0.55));
       say('¡Marea de Pokémon!', 2.2);
       G.Audio.sfx('surge');
@@ -148,7 +146,7 @@ G.Spawner = (() => {
   /** Unos cuantos de golpe desde un lado (al empezar una horda). */
   function burst(n) {
     const base = Math.random() * 6.2832, target = anchor() || G.Game.player, t = G.Game.st.time;
-    for (let i = 0; i < n && G.EnemyMgr.count < CAP + 10; i++) spawnOne(target, t, base + G.U.rand(-0.6, 0.6));
+    for (let i = 0; i < n && G.EnemyMgr.count < getCap() + 10; i++) spawnOne(target, t, base + G.U.rand(-0.6, 0.6));
   }
 
   /**
@@ -178,6 +176,8 @@ G.Spawner = (() => {
   /** Invitado en cooperativo: sólo corre el reloj del aviso. */
   function tickBanner(dt) { if (announceT > 0) announceT -= dt; }
 
-  return { reset, update, ahead, burst, tickBanner, banner, say, rate, SHINY_RATE, CAP,
+  return { reset, update, ahead, burst, tickBanner, banner, say, rate,
+           get SHINY_RATE() { return getShinyRate(); },
+           get CAP() { return getCap(); },
            debugForceShiny(n = 1) { G.Guard.flag('debug'); forceShiny = n; } };
 })();

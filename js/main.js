@@ -25,8 +25,16 @@
   if (document.readyState === 'loading') addEventListener('DOMContentLoaded', boot);
   else boot();
 
-  // Instalable como app (PWA). Sólo con http(s): abierto con doble clic (file://) no hace falta.
-  if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
-    addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(e => console.warn('[PWA]', e.message)));
+  // Instalable como app (PWA). En desarrollo local (localhost / 127.0.0.1 / dev.html) se desactiva
+  // y se limpian registros previos para evitar que el caché interfiera con las modificaciones.
+  const isLocalDev = location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.pathname.includes('dev.html');
+  if ('serviceWorker' in navigator) {
+    if (isLocalDev) {
+      navigator.serviceWorker.getRegistrations().then(regs => {
+        for (const reg of regs) reg.unregister();
+      }).catch(() => {});
+    } else if (location.protocol.startsWith('http')) {
+      addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(e => console.warn('[PWA]', e.message)));
+    }
   }
 })();

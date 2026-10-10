@@ -128,6 +128,7 @@ G.Game = (() => {
     if (!coop || G.Coop.isHost) G.Ranking.runStarted(coop ? 'g' : 's');
     deathT = 0;
     G.Guard.start(!!coop);
+    if (G.ModeRegistry) G.ModeRegistry.active().onStart({ coop, pl });
 
     state = 'playing';
   }
@@ -223,6 +224,7 @@ G.Game = (() => {
     const team = coop ? G.Coop.members.slice() : [];
     if (G.Coop.active) G.Coop.end();
     if (coop) G.Social.setPlaying(false);
+    if (G.ModeRegistry) G.ModeRegistry.active().onEnd(summary());
     state = 'over';
     G.Audio.music(null);
     G.Audio.sfx(dead ? 'gameover' : 'back');
@@ -441,6 +443,7 @@ G.Game = (() => {
       return;
     }
     time += dt;
+    if (G.ModeRegistry) G.ModeRegistry.active().onUpdate(dt, pl, time);
 
     const b = Math.floor(time / 240);
     if (b !== biome && !G.Rift.inArena) {

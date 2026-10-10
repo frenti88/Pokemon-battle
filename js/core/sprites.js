@@ -14,7 +14,22 @@ G.Sprites = (() => {
   const PX = 2;
   const sheets = new Map();          // "dex/Anim[/s]" -> {img, ready, failed}
 
-  function meta(dex) { return G.SPRITE_META[dex] || null; }
+  function resolveDex(dex) {
+    if (G.SPRITE_META && G.SPRITE_META[dex]) {
+      return G.SPRITE_META[dex]._fallbackDex || dex;
+    }
+    if (G.PokemonRegistry && G.PokemonRegistry.has(dex)) {
+      const p = G.PokemonRegistry.get(dex);
+      return p.fallbackDex || 25;
+    }
+    return dex;
+  }
+
+  function meta(dex) {
+    if (G.SPRITE_META && G.SPRITE_META[dex]) return G.SPRITE_META[dex];
+    const fb = resolveDex(dex);
+    return (G.SPRITE_META && G.SPRITE_META[fb]) || null;
+  }
 
   /** ¿Flota en su sprite? (tools/hover_flags.py) Pasa por encima de rocas y agua. */
   function hovers(dex) { const m = meta(dex); return !!(m && m.hv); }
@@ -49,7 +64,8 @@ G.Sprites = (() => {
   }
 
   function animName(dex, anim, shiny = false) {
-    const m = meta(dex);
+    const targetDex = resolveDex(dex);
+    const m = meta(targetDex);
     if (!m) return null;
     shiny = shiny && !!m.sh;
     if (has(m, anim, shiny)) return anim;
@@ -58,17 +74,19 @@ G.Sprites = (() => {
 
   /** Geometría de una animación (la shiny sólo difiere en casos raros). */
   function animMeta(dex, anim, shiny = false) {
-    const m = meta(dex);
+    const targetDex = resolveDex(dex);
+    const m = meta(targetDex);
     if (!m) return null;
-    const name = animName(dex, anim, shiny);
+    const name = animName(targetDex, anim, shiny);
     if (shiny && m.sh && m.sa && m.sa[name]) return m.sa[name];
     return m.a[name] || null;
   }
 
   function sheet(dex, anim, shiny = false) {
-    const m = meta(dex);
+    const targetDex = resolveDex(dex);
+    const m = meta(targetDex);
     shiny = shiny && !!(m && m.sh);
-    const name = animName(dex, anim, shiny);
+    const name = animName(targetDex, anim, shiny);
     if (!name) return null;
     const k = dex + '/' + name + (shiny ? '/s' : '');
     let s = sheets.get(k);
@@ -78,9 +96,17 @@ G.Sprites = (() => {
       return s;
     }
     s = { ready: false, failed: false, img: new Image(), tries: 0, retryAt: 0,
-          src: `assets/pokemon/${dex}/${shiny ? 's/' : ''}${name}.png` };
+          src: `assets/pokemon/${targetDex}/${shiny ? 's/' : ''}${name}.png` };
     s.img.onload = () => { s.ready = true; };
-    s.img.onerror = () => { s.failed = true; s.retryAt = performance.now() + 1000 * Math.min(8, 2 ** s.tries++); };
+    s.img.onerror = () => {
+      s.failed = true;
+      s.retryAt = performance.now() + 1000 * Math.min(8, 2 ** s.tries++);
+      // Si la hoja shiny no existe localmente, fallback a la normal
+      if (shiny) {
+        const normal = sheet(targetDex, name, false);
+        if (normal && normal.ready) s.img = normal.img;
+      }
+    };
     s.img.src = s.src;
     sheets.set(k, s);
     return s;
