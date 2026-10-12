@@ -28,11 +28,13 @@ G.Weather = (() => {
     fog:  { name: 'Niebla', icon: 'wfog', color: '#c9cfdc', tint: [190, 195, 210, 0.12],
             mult: { ghost: 1.3, fairy: 1.3, psychic: 1.3 }, hint: 'Fantasma, Hada y Psíquico se potencian' }
   };
-  // Probabilidad de cada clima según el bioma (bosque, cueva, volcán).
+  // Probabilidad de cada clima según el bioma (0: Fuego, 1: Agua, 2: Tierra, 3: Insecto, 4: Aire).
   const BIOME_W = [
-    { rain: 3, fog: 2, sun: 1.5, snow: 0.5, sand: 0.5 },
-    { fog: 3, snow: 2.5, rain: 1, sand: 1 },
-    { sun: 3, sand: 3, fog: 1 }
+    { sun: 4, sand: 2, fog: 0.5 },     // 0: Volcán Ígneo (Fuego)
+    { rain: 5, fog: 2 },               // 1: Gruta Marina (Agua)
+    { sand: 5, sun: 2 },               // 2: Cañón Árido (Tierra)
+    { rain: 3, fog: 3, sun: 1 },       // 3: Bosque Colmena (Insecto)
+    { fog: 3, snow: 2, rain: 2 }       // 4: Pico Celeste (Aire)
   ];
   const FROM = 120, CHECK = 60, CHANCE = 0.18;
 

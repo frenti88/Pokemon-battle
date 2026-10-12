@@ -82,11 +82,25 @@ G.Game = (() => {
 
   // ---------------- run ----------------
 
-  /** @param coop  { seed, host, members } para una partida en grupo */
-  function startRun(coop = null) {
+  let startBiomeIdx = 0;
+
+  /**
+   * @param coop     { seed, host, members } para una partida en grupo
+   * @param stageId  identificador opcional de escenario ('fire', 'water', etc.)
+   */
+  function startRun(coop = null, stageId = null) {
     const save = G.DB.save;
     const mon = G.DEX_BY[save.partner];
     const perks = G.Upgrades.perks(G.DB.upgradesOf(mon.dex));
+
+    let stage = null;
+    if (stageId && G.StageRegistry) {
+      stage = G.StageRegistry.get(stageId);
+      if (stage) G.StageRegistry.setActive(stage.id);
+    } else if (G.StageRegistry) {
+      stage = G.StageRegistry.getActive();
+    }
+    startBiomeIdx = (stage && stage.biomeIndex != null) ? stage.biomeIndex : 0;
 
     G.UI.hideAll();
     G.UI.chrome(false);
@@ -102,8 +116,8 @@ G.Game = (() => {
     G.Path.clear();
     G.Hazards.clear();
     G.World.reset(coop ? coop.seed : Math.floor(Math.random() * 1e6));
-    G.World.setBiome(0, true);
-    biome = 0;
+    G.World.setBiome(startBiomeIdx, true);
+    biome = startBiomeIdx;
     time = 0; pendingLevels = 0;
 
     pl = new G.Player(mon, perks, !!save.partnerShiny && G.DB.ownsShiny(mon.dex));
@@ -123,12 +137,13 @@ G.Game = (() => {
     G.Camera.x = pl.x; G.Camera.y = pl.y; G.Camera.shake = 0;
     // Hojas de sprites locales: el compañero y los primeros enemigos.
     G.Sprites.preload([mon.dex], 8000, pl.shiny);
-    G.Audio.music(G.BIOME_MUSIC[0]);
+    const musicTrack = (stage && stage.music) || (G.BIOME_MUSIC ? G.BIOME_MUSIC[startBiomeIdx] : 'volcano');
+    G.Audio.music(musicTrack);
     // Para el ranking: el servidor apunta cuándo empezó la partida.
     if (!coop || G.Coop.isHost) G.Ranking.runStarted(coop ? 'g' : 's');
     deathT = 0;
     G.Guard.start(!!coop);
-    if (G.ModeRegistry) G.ModeRegistry.active().onStart({ coop, pl });
+    if (G.ModeRegistry) G.ModeRegistry.active().onStart({ coop, pl, stage });
 
     state = 'playing';
   }
@@ -445,7 +460,8 @@ G.Game = (() => {
     time += dt;
     if (G.ModeRegistry) G.ModeRegistry.active().onUpdate(dt, pl, time);
 
-    const b = Math.floor(time / 240);
+    const nBiomes = (G.Tiles && G.Tiles.NORMAL) ? G.Tiles.NORMAL : 5;
+    const b = (startBiomeIdx + Math.floor(time / 240)) % nBiomes;
     if (b !== biome && !G.Rift.inArena) {
       biome = b;
       G.World.setBiome(b);
@@ -616,7 +632,8 @@ G.Game = (() => {
       G.Camera.follow(G.Camera.x, G.Camera.y, dt);
 
       biomeT += dt;
-      if (biomeT > 30) { biomeT = 0; bi = (bi + 1) % 3; G.World.setBiome(bi); }
+      const nBiomes = (G.Tiles && G.Tiles.NORMAL) ? G.Tiles.NORMAL : 5;
+      if (biomeT > 30) { biomeT = 0; bi = (bi + 1) % nBiomes; G.World.setBiome(bi); }
 
       for (const wd of wanderers) {
         wd.t -= dt;
@@ -689,6 +706,7 @@ G.Flow = {
     G.UI.initChrome();
     G.LoginUI.init(); G.TestUI.init(); G.MenuUI.init(); G.GachaUI.init();
     G.SocialUI.init(); G.RankingUI.init(); G.GoalsUI.init(); G.ProfileUI.init(); G.SettingsUI.init(); G.SupportUI.init();
+    if (G.StageUI) G.StageUI.init();
     if (G.PWA) G.PWA.init();
     // Tu nombre arriba a la derecha abre tu perfil.
     document.getElementById('user-pill').onclick = () => G.GoalsUI.open('profile');
@@ -742,7 +760,7 @@ G.Flow = {
       G.LobbyUI.open();
     } else this.goMenu();
   },
-  play() { G.Game.startRun(); },
+  play(stageId = null) { G.Game.startRun(null, stageId); },
   /** Empieza la partida en grupo (el anfitrión la manda a todos). */
   startCoop(cfg) {
     if (G.Game.state !== 'ui' || !G.Social.room) return;

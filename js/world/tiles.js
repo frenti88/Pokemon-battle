@@ -10,33 +10,58 @@ G.Tiles = (() => {
   const T = 16;                       // píxeles de arte por tile
 
   const BIOMES = [
-    { name: 'Bosque Umbrío', liquid: 'water',
-      floor: ['#3e7a39', '#44813d', '#397134'], dirt: ['#7d6742', '#735e3b', '#86704a'],
-      speck: '#2f5f2b', light: '#5f9d50', flowers: ['#f4d65c', '#f39ac0', '#eef2ff'],
-      wallTop: ['#5d6e49', '#677a50', '#566544'], wallLight: '#88a06e', wallEdge: '#26301f',
-      wallFace: ['#3e4934', '#363f2d'], wallFaceDark: '#232a1d',
-      liq: '#3b7fc6', liqDeep: '#2c64a6', foam: '#b3defa', shore: '#2b5b2a',
-      prop: 'tree', leaf: ['#235a2b', '#2f7535', '#45943f', '#64b252'], trunk: ['#5b3b22', '#7a5130'],
-      rock: ['#5e6670', '#7f8893', '#a1aab4'], grass: ['#2f6b2c', '#4c9a3f', '#7cc45a'] },
-    { name: 'Cueva Cristal', liquid: 'water',
-      floor: ['#4d5778', '#535e81', '#47506f'], dirt: ['#3c4462', '#424a69', '#37405b'],
-      speck: '#3b4363', light: '#6a78a4', flowers: ['#8fe3ff', '#c9a6ff', '#7ef0d0'],
-      wallTop: ['#5f5089', '#695996', '#56497d'], wallLight: '#a08ddc', wallEdge: '#1f1934',
-      wallFace: ['#3f3463', '#382e59'], wallFaceDark: '#221c3a',
-      liq: '#2a9cab', liqDeep: '#1d7c8a', foam: '#aaf4f7', shore: '#33405e',
-      prop: 'crystal', leaf: ['#5ad1e8', '#8fe7f5', '#c8f7ff', '#ffffff'], trunk: ['#3a4a78', '#4e64a0'],
-      rock: ['#555d79', '#737c9c', '#959fc0'], grass: ['#3d5c8a', '#5a86c0', '#8ab8ee'] },
-    { name: 'Volcán Ceniza', liquid: 'lava',
-      floor: ['#5b4537', '#644c3c', '#533f32'], dirt: ['#403530', '#473b34', '#392f2b'],
-      speck: '#47362b', light: '#806452', flowers: ['#ff8d3d', '#ffc45e', '#e06a4a'],
-      wallTop: ['#3c3634', '#443d3a', '#35302e'], wallLight: '#625752', wallEdge: '#141110',
-      wallFace: ['#2b2624', '#25201f'], wallFaceDark: '#151211',
-      liq: '#e45a1f', liqDeep: '#b9401a', foam: '#ffd46a', shore: '#3a2a22',
-      prop: 'dead', leaf: ['#4a3a30', '#5e4a3c', '#6f5a49', '#806a58'], trunk: ['#3a2e27', '#52423a'],
-      rock: ['#4e4642', '#6a605b', '#877c76'], grass: ['#6b4a2a', '#94693a', '#c4914e'] },
+    // 0. FUEGO: Volcán Ígneo (Caldera Magmática)
+    { name: 'Volcán Ígneo', type: 'fire', liquid: 'lava',
+      floor: ['#543224', '#613b2b', '#482a1d'], dirt: ['#3b2219', '#44281d', '#321c14'],
+      speck: '#28140d', light: '#e85a24', flowers: ['#ff4500', '#ff9f1c', '#ffea00'],
+      wallTop: ['#3a221c', '#442a22', '#321c17'], wallLight: '#734336', wallEdge: '#160c09',
+      wallFace: ['#291612', '#21110d'], wallFaceDark: '#120806',
+      liq: '#ff4d00', liqDeep: '#b82e00', foam: '#ffe57f', shore: '#361b14',
+      prop: 'dead', leaf: ['#42281e', '#593628', '#734633', '#8c553e'], trunk: ['#2e1913', '#40241b'],
+      rock: ['#382420', '#50352e', '#6e4c43'], grass: ['#7a3818', '#a34c20', '#cc642c'] },
+
+    // 1. AGUA: Gruta Marina (Arrecife Cristalino)
+    { name: 'Gruta Marina', type: 'water', liquid: 'water',
+      floor: ['#285b73', '#2f6984', '#224e63'], dirt: ['#1e4659', '#245269', '#193a4a'],
+      speck: '#143240', light: '#57bedc', flowers: ['#4ee3d6', '#ff85a2', '#ffffff'],
+      wallTop: ['#1f425c', '#254d6b', '#1a374d'], wallLight: '#4a82a8', wallEdge: '#0d1d29',
+      wallFace: ['#163145', '#122737'], wallFaceDark: '#09151e',
+      liq: '#1e88e5', liqDeep: '#1565c0', foam: '#e1f5fe', shore: '#1d465c',
+      prop: 'crystal', leaf: ['#26c6da', '#80deea', '#b2ebf2', '#ffffff'], trunk: ['#1565c0', '#1e88e5'],
+      rock: ['#2c5d73', '#3d7791', '#5498b5'], grass: ['#26a69a', '#4db6ac', '#80cbc4'] },
+
+    // 2. TIERRA: Cañón Árido (Desierto Terráqueo)
+    { name: 'Cañón Árido', type: 'ground', liquid: 'swamp',
+      floor: ['#9c6f3b', '#aa7941', '#8a6234'], dirt: ['#78532b', '#855d30', '#664523'],
+      speck: '#52361a', light: '#d4a259', flowers: ['#ffb703', '#fb8500', '#ede0d4'],
+      wallTop: ['#7d532c', '#8a5c31', '#6e4826'], wallLight: '#b5814c', wallEdge: '#362210',
+      wallFace: ['#59391e', '#4c3019'], wallFaceDark: '#2b1a0d',
+      liq: '#735738', liqDeep: '#574129', foam: '#d4b996', shore: '#634725',
+      prop: 'dead', leaf: ['#664625', '#80572e', '#996937', '#b37c42'], trunk: ['#4d331a', '#5e3f21'],
+      rock: ['#805735', '#9e6d44', '#bd8555'], grass: ['#9c833d', '#bfa34e', '#ded066'] },
+
+    // 3. INSECTO: Bosque Colmena (Inspirado en Rising Spire Forest Tilemap)
+    { name: 'Bosque Colmena', type: 'bug', liquid: 'swamp',
+      floor: ['#3c782b', '#448431', '#346a25'], dirt: ['#5c4524', '#664d28', '#4f3b1e'],
+      speck: '#244d1a', light: '#6cc449', flowers: ['#ffea00', '#ff007f', '#00e5ff'],
+      wallTop: ['#4d612e', '#566c34', '#425327'], wallLight: '#7c9c4c', wallEdge: '#1c260f',
+      wallFace: ['#36441f', '#2e3b1a'], wallFaceDark: '#171e0c',
+      liq: '#789e22', liqDeep: '#577317', foam: '#d9f067', shore: '#2d4a1b',
+      prop: 'tree', leaf: ['#1f571b', '#2c7326', '#3e9c35', '#57c74a'], trunk: ['#4a2e16', '#663f1f'],
+      rock: ['#52614b', '#6d8065', '#8aa180'], grass: ['#2c7824', '#42a837', '#64db56'] },
+
+    // 4. AIRE: Pico Celeste (Cumbre Ventosa de Altitud)
+    { name: 'Pico Celeste', type: 'flying', liquid: 'water',
+      floor: ['#6c8299', '#7890a8', '#5e7287'], dirt: ['#506073', '#5a6d82', '#445363'],
+      speck: '#364452', light: '#a9c2db', flowers: ['#ffffff', '#70d6ff', '#e0aaff'],
+      wallTop: ['#586b80', '#63788f', '#4b5c6e'], wallLight: '#94abc4', wallEdge: '#222b33',
+      wallFace: ['#3e4c5c', '#333f4d'], wallFaceDark: '#192026',
+      liq: '#4a90e2', liqDeep: '#3570b8', foam: '#ffffff', shore: '#465769',
+      prop: 'crystal', leaf: ['#80a3c4', '#a8c5e2', '#d0e3f5', '#ffffff'], trunk: ['#42566e', '#576f8c'],
+      rock: ['#728191', '#8f9fae', '#b0c0cf'], grass: ['#688aa6', '#87abc7', '#b0d1eb'] }
   ];
-  const NORMAL = 3;                   // biomas que se van turnando en una run
-  const ARENA = 3;                    // a partir de aquí, las arenas de la grieta (una por tipo)
+  const NORMAL = 5;                   // 5 escenarios elementales que se van turnando en una run
+  const ARENA = 5;                    // a partir de aquí, las arenas de la grieta (una por tipo)
 
   // ---------------- arenas de la grieta ----------------
   /*

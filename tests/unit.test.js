@@ -287,6 +287,59 @@ test('StageRegistry: registrar escenario y bioma custom', () => {
   assert.strictEqual(G.StageRegistry.get('space-rift').name, 'Grieta Estelar');
 });
 
+// 13b. 5 Escenarios Elementales (Fuego, Agua, Tierra, Insecto, Aire) y biomas
+test('Escenarios Elementales: 5 biomas únicos con tipos Fuego, Agua, Tierra, Insecto y Aire', () => {
+  const fs = require('fs');
+  const path = require('path');
+
+  // 1. Validar G.Tiles.NORMAL y G.Tiles.ARENA
+  assert.strictEqual(G.Tiles.NORMAL, 5, 'Deben existir al menos 5 biomas normales');
+  assert.strictEqual(G.Tiles.ARENA, 5, 'Las arenas de grieta deben comenzar en el índice 5');
+
+  // 2. Validar cada uno de los 5 biomas en G.Tiles.BIOMES
+  const expectedTypes = ['fire', 'water', 'ground', 'bug', 'flying'];
+  const expectedNames = ['Volcán Ígneo', 'Gruta Marina', 'Cañón Árido', 'Bosque Colmena', 'Pico Celeste'];
+
+  for (let i = 0; i < 5; i++) {
+    const b = G.Tiles.BIOMES[i];
+    assert.ok(b, `Bioma #${i} debe existir`);
+    assert.strictEqual(b.type, expectedTypes[i], `Tipo de bioma #${i} debe ser ${expectedTypes[i]}`);
+    assert.strictEqual(b.name, expectedNames[i], `Nombre de bioma #${i} debe ser ${expectedNames[i]}`);
+    assert.ok(Array.isArray(b.floor) && b.floor.length >= 3, `Paleta floor en bioma #${i}`);
+    assert.ok(Array.isArray(b.dirt) && b.dirt.length >= 3, `Paleta dirt en bioma #${i}`);
+    assert.ok(b.liquid, `Líquido definido en bioma #${i}`);
+    assert.ok(['tree', 'crystal', 'dead'].includes(b.prop), `Prop válido en bioma #${i}`);
+  }
+
+  // 3. Validar StageRegistry con los 5 escenarios elementales
+  for (const type of expectedTypes) {
+    const stage = G.StageRegistry.get(type);
+    assert.ok(stage, `Escenario para tipo ${type} debe estar registrado`);
+    assert.strictEqual(stage.pokemonType, type);
+    assert.ok(stage.name.length > 0);
+  }
+
+  // Validar getByType
+  assert.strictEqual(G.StageRegistry.getByType('fire').id, 'fire');
+  assert.strictEqual(G.StageRegistry.getByType('water').id, 'water');
+  assert.strictEqual(G.StageRegistry.getByType('ground').id, 'ground');
+  assert.strictEqual(G.StageRegistry.getByType('bug').id, 'bug');
+  assert.strictEqual(G.StageRegistry.getByType('flying').id, 'flying');
+
+  // Aliases de compatibilidad hacia atrás
+  assert.ok(G.StageRegistry.get('volcano'), 'Alias volcano debe existir');
+  assert.ok(G.StageRegistry.get('crystal'), 'Alias crystal debe existir');
+  assert.ok(G.StageRegistry.get('forest'), 'Alias forest debe existir');
+
+  // 4. Validar assets de referencia descargados en disco
+  const tilesetDir = path.join(__dirname, '..', 'assets', 'tilesets');
+  assert.ok(fs.existsSync(tilesetDir), 'Carpeta assets/tilesets debe existir');
+  assert.ok(fs.existsSync(path.join(tilesetDir, 'forest_plains.png')), 'forest_plains.png debe existir');
+  for (let r = 1; r <= 5; r++) {
+    assert.ok(fs.existsSync(path.join(tilesetDir, `biome_reference_${r}.png`)), `biome_reference_${r}.png debe existir`);
+  }
+});
+
 // 14. Extensibilidad: Registro de Modo de Juego
 test('ModeRegistry: registrar modo custom y ciclo de vida', () => {
   assert.ok(G.ModeRegistry, 'ModeRegistry debe estar definido');

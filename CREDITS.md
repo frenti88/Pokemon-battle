@@ -129,6 +129,14 @@ uso **no comercial** y con atribución a sus artistas.
 Stats base y nombres en español: [PokeAPI](https://pokeapi.co/),
 descargados una vez y guardados en `js/data/pokedex.js`.
 
+## Escenarios y Tilesets
+
+Referencias y recursos descargados para los 5 biomas elementales del juego:
+- **Forest Tilemap** (Rising Spire) por Vomdrache / zeropachame:
+  [OpenGameArt.org](https://opengameart.org/content/forest-tilemap), bajo licencia [CC0 1.0 (Dominio Público)](https://creativecommons.org/publicdomain/zero/1.0/).
+- **Topdown Tileset 32x32 (9 Biomes)** por CALWebDevelopment:
+  [itch.io](https://calwebdevelopment.itch.io/topdown-tileset-32x32-9-biomes), bajo licencia [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+
 ## Marca
 
 Pokémon es propiedad de Nintendo, Creatures Inc. y GAME FREAK.

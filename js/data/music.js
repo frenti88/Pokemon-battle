@@ -124,5 +124,5 @@ G.MUSIC.rift = {
   drums: { kick: 'X.x.X.x.X.x.X.xx', snare: '....X.......X..X', hat: 'xoxoxoxoxoxoxoxo' }
 };
 
-/** Tema de cada bioma durante la run. */
-G.BIOME_MUSIC = ['forest', 'cave', 'volcano'];
+/** Tema de cada bioma durante la run (Fuego, Agua, Tierra, Insecto, Aire). */
+G.BIOME_MUSIC = ['volcano', 'cave', 'volcano', 'forest', 'cave'];

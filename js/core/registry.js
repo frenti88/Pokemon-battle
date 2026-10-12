@@ -261,16 +261,113 @@ G.StageRegistry = (() => {
     return [...stages.values()];
   }
 
-  // Pre-registrar biomas existentes como escenarios estándar
-  register({ id: 'forest', name: 'Bosque Umbrío', type: 'procedural', biomeIndex: 0, liquid: 'water', music: 'forest' });
-  register({ id: 'crystal', name: 'Cueva Cristal', type: 'procedural', biomeIndex: 1, liquid: 'water', music: 'crystal' });
-  register({ id: 'volcano', name: 'Volcán Ceniza', type: 'procedural', biomeIndex: 2, liquid: 'lava', music: 'volcano' });
+  let activeStageId = 'fire';
+
+  function setActive(id) {
+    if (stages.has(id)) activeStageId = id;
+    return getActive();
+  }
+
+  function getActive() {
+    return stages.get(activeStageId) || stages.get('fire') || [...stages.values()][0];
+  }
+
+  function getByType(type) {
+    if (!type) return null;
+    const t = String(type).toLowerCase();
+    return getAll().find(s => s.pokemonType === t || s.id === t) || null;
+  }
+
+  // Pre-registrar los 5 escenarios elementales principales
+  register({
+    id: 'fire',
+    name: 'Volcán Ígneo',
+    subtitle: 'Caldera Magmática',
+    type: 'procedural',
+    pokemonType: 'fire',
+    biomeIndex: 0,
+    liquid: 'lava',
+    music: 'volcano',
+    weather: 'sun',
+    icon: '🔥',
+    badgeColor: '#ff5722',
+    desc: 'Rocas de basalto ardiente, ríos de lava y ascuas flotantes.'
+  });
+
+  register({
+    id: 'water',
+    name: 'Gruta Marina',
+    subtitle: 'Arrecife Cristalino',
+    type: 'procedural',
+    pokemonType: 'water',
+    biomeIndex: 1,
+    liquid: 'water',
+    music: 'cave',
+    weather: 'rain',
+    icon: '💧',
+    badgeColor: '#29b6f6',
+    desc: 'Aguas cristalinas profundas, arrecifes de coral y lluvia constante.'
+  });
+
+  register({
+    id: 'ground',
+    name: 'Cañón Árido',
+    subtitle: 'Desierto Terráqueo',
+    type: 'procedural',
+    pokemonType: 'ground',
+    biomeIndex: 2,
+    liquid: 'swamp',
+    music: 'volcano',
+    weather: 'sand',
+    icon: '🏜️',
+    badgeColor: '#d4a373',
+    desc: 'Estratos de arenisca rojiza, tierra árida y tormentas de arena.'
+  });
+
+  register({
+    id: 'bug',
+    name: 'Bosque Colmena',
+    subtitle: 'Selva Miriápoda',
+    type: 'procedural',
+    pokemonType: 'bug',
+    biomeIndex: 3,
+    liquid: 'swamp',
+    music: 'forest',
+    weather: 'fog',
+    icon: '🐛',
+    badgeColor: '#7cb342',
+    desc: 'Vegetación exuberante inspirada en Rising Spire, ciénagas de savia y árboles ancestrales.'
+  });
+
+  register({
+    id: 'flying',
+    name: 'Pico Celeste',
+    subtitle: 'Cumbre Ventosa',
+    type: 'procedural',
+    pokemonType: 'flying',
+    biomeIndex: 4,
+    liquid: 'water',
+    music: 'cave',
+    weather: 'fog',
+    icon: '🦅',
+    badgeColor: '#90caf9',
+    desc: 'Cumbres rocosas por encima de las nubes, manantiales puros y vientos veloces.'
+  });
+
+  // Aliases de compatibilidad hacia atrás
+  register({ id: 'volcano', name: 'Volcán Ígneo', aliasOf: 'fire', type: 'procedural', pokemonType: 'fire', biomeIndex: 0, liquid: 'lava', music: 'volcano' });
+  register({ id: 'crystal', name: 'Gruta Marina', aliasOf: 'water', type: 'procedural', pokemonType: 'water', biomeIndex: 1, liquid: 'water', music: 'cave' });
+  register({ id: 'forest', name: 'Bosque Colmena', aliasOf: 'bug', type: 'procedural', pokemonType: 'bug', biomeIndex: 3, liquid: 'swamp', music: 'forest' });
+  register({ id: 'air', name: 'Pico Celeste', aliasOf: 'flying', type: 'procedural', pokemonType: 'flying', biomeIndex: 4, liquid: 'water', music: 'cave' });
 
   return {
     register,
     get,
     getAll,
-    validate
+    validate,
+    setActive,
+    getActive,
+    getByType
   };
 })();
 

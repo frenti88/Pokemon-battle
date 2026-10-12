@@ -14,6 +14,7 @@
 const { chromium } = require('playwright');
 const path = require('path');
 const fs = require('fs');
+const http = require('http');
 const assert = require('assert');
 
 const SCREENSHOTS_DIR = path.join(__dirname, 'screenshots');
@@ -21,10 +22,43 @@ if (!fs.existsSync(SCREENSHOTS_DIR)) {
   fs.mkdirSync(SCREENSHOTS_DIR, { recursive: true });
 }
 
-const BASE_URL = 'http://localhost:8000';
+const MIME = {
+  '.html': 'text/html; charset=utf-8',
+  '.js': 'application/javascript; charset=utf-8',
+  '.css': 'text/css; charset=utf-8',
+  '.json': 'application/json; charset=utf-8',
+  '.webmanifest': 'application/manifest+json; charset=utf-8',
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.ttf': 'font/ttf',
+  '.ico': 'image/x-icon'
+};
+
+function startServer(port = 8089) {
+  const root = path.join(__dirname, '..');
+  const server = http.createServer((req, res) => {
+    let reqPath = req.url.split('?')[0];
+    if (reqPath === '/' || reqPath === '') reqPath = '/index.html';
+    const filePath = path.join(root, decodeURIComponent(reqPath));
+    if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {
+      res.writeHead(404, { 'Content-Type': 'text/plain' });
+      return res.end('Not found');
+    }
+    const ext = path.extname(filePath).toLowerCase();
+    const contentType = MIME[ext] || 'application/octet-stream';
+    res.writeHead(200, { 'Content-Type': contentType, 'Access-Control-Allow-Origin': '*' });
+    fs.createReadStream(filePath).pipe(res);
+  });
+  return new Promise(resolve => {
+    server.listen(port, '127.0.0.1', () => resolve(server));
+  });
+}
 
 async function runBrowserTests() {
   console.log('--- INICIANDO PRUEBAS E2E Y VISUALES EN NAVEGADOR ---');
+
+  const server = await startServer(8089);
+  const BASE_URL = 'http://127.0.0.1:8089';
 
   const browser = await chromium.launch({
     headless: true,
@@ -246,6 +280,40 @@ async function runBrowserTests() {
 
     await page.screenshot({ path: path.join(SCREENSHOTS_DIR, '02_main_menu.png') });
 
+    // -------------------------------------------------------------
+    // 8. SELECTOR DE ESCENARIOS ELEMENTALES
+    // -------------------------------------------------------------
+    console.log('\n[8/8] Verificando selector interactivo de 5 escenarios elementales...');
+    await page.locator('#scr-menu [data-go="play"]').click();
+    await page.waitForTimeout(600);
+
+    const stagesScreen = page.locator('#scr-stages');
+    await stagesScreen.waitFor({ state: 'visible', timeout: 5000 });
+
+    const stageCards = page.locator('.stage-card');
+    const stageCount = await stageCards.count();
+    console.log(`  Tarjetas de escenarios visibles en selector: ${stageCount}`);
+    assert.strictEqual(stageCount, 5, 'Deben existir exactamente 5 escenarios elementales');
+
+    await page.screenshot({ path: path.join(SCREENSHOTS_DIR, '07_stage_selector.png') });
+
+    // Iniciar combate en el escenario de Agua (Gruta Marina)
+    const waterBtn = page.locator('.stage-water .stage-play-btn');
+    await waterBtn.click();
+    await page.waitForTimeout(1500);
+
+    const isPlayingWater = await page.evaluate(() => G.Game.state === 'playing');
+    assert.strictEqual(isPlayingWater, true, 'El juego debe estar en estado playing tras elegir escenario');
+    const activeBiomeName = await page.evaluate(() => G.World.biomeName());
+    console.log(`  Bioma activo en combate tras selección: ${activeBiomeName}`);
+    assert.strictEqual(activeBiomeName, 'Gruta Marina', 'El bioma inicial debe ser Gruta Marina');
+
+    // Volver al menú
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(500);
+    await page.locator('#btn-quit').click();
+    await page.waitForTimeout(1000);
+
     // Probar también index.html (versión compilada)
     console.log('\n--- Probando versión empaquetada (index.html) ---');
     await page.goto(`${BASE_URL}/index.html`, { waitUntil: 'domcontentloaded' });
@@ -267,6 +335,7 @@ async function runBrowserTests() {
   } finally {
     await context.close();
     await browser.close();
+    if (server) server.close();
   }
 }
 
