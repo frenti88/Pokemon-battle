@@ -231,15 +231,20 @@
 <!-- ====== Selector de Escenarios Elementales ====== -->
 <section id="scr-stages" class="scr dim hidden">
   <div class="box wide stage-selector-box">
-    <div class="row between items-center" style="margin-bottom:14px">
+    <div class="row between items-center" style="margin-bottom:12px">
       <div>
-        <h2>Elige tu Escenario de Batalla</h2>
-        <p class="sub" style="margin:3px 0 0">Combate en 5 biomas elementales: Fuego, Agua, Tierra, Insecto y Aire</p>
+        <h2>Mundos y Escenarios de Batalla</h2>
+        <p class="sub" id="stages-sub" style="margin:3px 0 0">Explora los biomas elementales. Consulta sus características y desbloquea nuevos mundos.</p>
       </div>
       <div class="row" style="gap:8px">
         <button id="stages-random" class="btn gold small" type="button">🎲 Aleatorio</button>
         <button id="stages-back" class="btn ghost small" type="button">Volver</button>
       </div>
+    </div>
+    <div class="stage-tabs-row" id="stage-tabs">
+      <button class="stage-tab active" data-filter="all" type="button">Todos (5)</button>
+      <button class="stage-tab" data-filter="unlocked" type="button">🔓 Disponibles</button>
+      <button class="stage-tab" data-filter="locked" type="button">🔒 Bloqueados</button>
     </div>
     <div class="stages-grid" id="stages-grid"></div>
   </div>
@@ -262,6 +267,7 @@
     <div class="box">
       <div class="menu-list">
         <button class="menu-item play" data-go="play">Jugar<small>Entra en la mazmorra</small></button>
+        <button class="menu-item" data-go="stages">Mundos<small id="menu-stages-sub">5 biomas elementales</small></button>
         <button class="menu-item" data-go="dex">Pokémon<small id="menu-dex-count">Tu colección</small></button>
         <button class="menu-item" data-go="upgrades">Mejoras<small>Haz más fuerte cada run</small></button>
         <button class="menu-item" data-go="gacha">Gacha<small>9 regiones · Pokémon y shinies</small></button>

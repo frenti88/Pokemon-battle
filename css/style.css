@@ -934,9 +934,37 @@ body.is-standalone #btn-pwa-install-settings {
 }
 .stages-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
   gap: 14px;
-  margin-top: 6px;
+  margin-top: 10px;
+}
+.stage-tabs-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+.stage-tab {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #cbd5e1;
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.stage-tab:hover {
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+}
+.stage-tab.active {
+  background: #ffd23f;
+  color: #1b1528;
+  border-color: #ffd23f;
+  font-weight: 700;
 }
 .stage-card {
   background: rgba(10, 20, 45, 0.7);
@@ -950,10 +978,36 @@ body.is-standalone #btn-pwa-install-settings {
   position: relative;
   overflow: hidden;
 }
-.stage-card:hover {
+.stage-card.is-unlocked:hover {
   transform: translateY(-2px);
   border-color: var(--stage-accent, #ffd23f);
   box-shadow: 0 4px 18px rgba(0, 0, 0, 0.4), 0 0 12px var(--stage-accent, rgba(255, 210, 63, 0.3));
+}
+.stage-card.is-locked {
+  background: rgba(12, 14, 24, 0.85);
+  border-color: rgba(255, 255, 255, 0.1);
+  opacity: 0.92;
+}
+.stage-card.is-locked:hover {
+  border-color: rgba(255, 179, 0, 0.4);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+.stage-status-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 10px;
+  letter-spacing: 0.3px;
+}
+.stage-status-badge.unlocked {
+  background: rgba(95, 224, 138, 0.2);
+  color: #5fe08a;
+  border: 1px solid rgba(95, 224, 138, 0.5);
+}
+.stage-status-badge.locked {
+  background: rgba(255, 179, 0, 0.18);
+  color: #ffb300;
+  border: 1px solid rgba(255, 179, 0, 0.45);
 }
 .stage-card-header {
   display: flex;
@@ -961,7 +1015,6 @@ body.is-standalone #btn-pwa-install-settings {
   gap: 2px;
 }
 .stage-card-badge {
-  align-self: flex-start;
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
@@ -969,7 +1022,6 @@ body.is-standalone #btn-pwa-install-settings {
   padding: 3px 8px;
   border-radius: 6px;
   text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.8);
-  margin-bottom: 4px;
 }
 .stage-title {
   margin: 0;
@@ -985,7 +1037,7 @@ body.is-standalone #btn-pwa-install-settings {
   display: flex;
   gap: 10px;
   align-items: center;
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba(0, 0, 0, 0.35);
   padding: 8px;
   border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -1017,11 +1069,94 @@ body.is-standalone #btn-pwa-install-settings {
   font-size: 12px;
   line-height: 1.4;
   color: #cbd5e1;
-  margin: 4px 0 8px;
+  margin: 4px 0;
   flex-grow: 1;
+}
+.stage-feat-list {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  background: rgba(255, 255, 255, 0.04);
+  padding: 6px 10px;
+  border-radius: 6px;
+  margin-bottom: 4px;
+}
+.stage-feat-item {
+  font-size: 11px;
+  color: #94a3b8;
+}
+.stage-unlock-box {
+  background: rgba(255, 179, 0, 0.08);
+  border: 1px solid rgba(255, 179, 0, 0.3);
+  border-radius: 8px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.unlock-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: #ffb300;
+  text-transform: uppercase;
+}
+.unlock-desc {
+  font-size: 11px;
+  color: #e2e8f0;
+  line-height: 1.3;
+  margin: 0;
+}
+.unlock-bar-wrap {
+  width: 100%;
+  height: 6px;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 3px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.unlock-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ffb300, #5fe08a);
+  transition: width 0.3s ease;
+}
+.unlock-meta-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: #94a3b8;
+}
+.unlock-meta-row b {
+  color: #ffd23f;
+}
+.stage-unlocked-banner {
+  background: rgba(95, 224, 138, 0.1);
+  border: 1px solid rgba(95, 224, 138, 0.3);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 11px;
+  color: #5fe08a;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.unlocked-icon {
+  font-weight: 700;
+}
+.stage-actions {
+  margin-top: 4px;
 }
 .stage-play-btn {
   width: 100%;
   padding: 8px 10px;
   font-size: 14px;
+}
+.stage-locked-btn {
+  width: 100%;
+  padding: 8px 10px;
+  font-size: 13px;
+  cursor: not-allowed;
+  opacity: 0.65;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #94a3b8;
 }

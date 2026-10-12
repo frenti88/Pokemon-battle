@@ -278,7 +278,91 @@ G.StageRegistry = (() => {
     return getAll().find(s => s.pokemonType === t || s.id === t) || null;
   }
 
-  // Pre-registrar los 5 escenarios elementales principales
+  function isUnlocked(id) {
+    const st = get(id);
+    if (!st) return false;
+    if (st.aliasOf) return isUnlocked(st.aliasOf);
+    if (st.unlockedByDefault) return true;
+    const save = window.G && G.DB && G.DB.save;
+    if (!save) return !!st.unlockedByDefault;
+    if (save.unlockedStages && save.unlockedStages[st.id]) return true;
+    const stats = save.stats || {};
+    const req = st.unlockReq || {};
+    if (req.time && (stats.bestTime || 0) >= req.time) return true;
+    if (req.level && (stats.bestLevel || 0) >= req.level) return true;
+    if (req.kills && (stats.totalKills || 0) >= req.kills) return true;
+    if (req.bosses && (stats.bossesTotal || 0) >= req.bosses) return true;
+    if (req.riftWins && (stats.riftWins || 0) >= req.riftWins) return true;
+    return false;
+  }
+
+  function unlock(id) {
+    const st = get(id);
+    if (!st) return false;
+    const realId = st.aliasOf || st.id;
+    const save = window.G && G.DB && G.DB.save;
+    if (save) {
+      save.unlockedStages = save.unlockedStages || {};
+      save.unlockedStages[realId] = true;
+      if (G.DB.commit) G.DB.commit();
+    }
+    return true;
+  }
+
+  function getUnlockProgress(id) {
+    const st = get(id);
+    if (!st) return { unlocked: false, ratio: 0, currentText: '0', targetText: '0', desc: '' };
+    const unlocked = isUnlocked(id);
+    if (unlocked) return { unlocked: true, ratio: 1, currentText: 'Completado', targetText: 'Listo', desc: '¡Mundo disponible para combatir!' };
+
+    const save = window.G && G.DB && G.DB.save;
+    const stats = (save && save.stats) || {};
+    const req = st.unlockReq || {};
+
+    const mmss = s => {
+      const m = Math.floor(s / 60), sec = Math.floor(s % 60);
+      return `${m}:${sec < 10 ? '0' : ''}${sec}`;
+    };
+
+    if (req.time) {
+      const cur = stats.bestTime || 0;
+      const tgt = req.time;
+      const ratio = Math.min(1, Math.max(0, cur / tgt));
+      return {
+        unlocked: false,
+        ratio,
+        currentText: `${mmss(cur)} min`,
+        targetText: `${mmss(tgt)} min`,
+        desc: req.desc
+      };
+    }
+    if (req.kills) {
+      const cur = stats.totalKills || 0;
+      const tgt = req.kills;
+      return {
+        unlocked: false,
+        ratio: Math.min(1, Math.max(0, cur / tgt)),
+        currentText: `${cur}`,
+        targetText: `${tgt} derrotados`,
+        desc: req.desc
+      };
+    }
+    return { unlocked: false, ratio: 0, currentText: '0', targetText: '1', desc: req.desc || 'Desafío pendiente' };
+  }
+
+  function getUnlocked() {
+    return ['fire', 'water', 'ground', 'bug', 'flying']
+      .map(id => get(id))
+      .filter(st => st && isUnlocked(st.id));
+  }
+
+  function getLocked() {
+    return ['fire', 'water', 'ground', 'bug', 'flying']
+      .map(id => get(id))
+      .filter(st => st && !isUnlocked(st.id));
+  }
+
+  // Pre-registrar los 5 escenarios elementales principales con lore y requisitos
   register({
     id: 'fire',
     name: 'Volcán Ígneo',
@@ -291,7 +375,10 @@ G.StageRegistry = (() => {
     weather: 'sun',
     icon: '🔥',
     badgeColor: '#ff5722',
-    desc: 'Rocas de basalto ardiente, ríos de lava y ascuas flotantes.'
+    unlockedByDefault: true,
+    unlockReq: { desc: 'Mundo inicial desbloqueado para todos los entrenadores.' },
+    features: ['Ríos de lava ardiente', 'Ascuas flotantes incandescentes', 'Suelos de basalto negro'],
+    desc: 'Una caldera volcánica activa donde el calor extremo ha forjado suelos de basalto ardiente. Los Pokémon de fuego patrullan las corrientes de magma mientras columnas de humo se elevan al cielo.'
   });
 
   register({
@@ -306,13 +393,16 @@ G.StageRegistry = (() => {
     weather: 'rain',
     icon: '💧',
     badgeColor: '#29b6f6',
-    desc: 'Aguas cristalinas profundas, arrecifes de coral y lluvia constante.'
+    unlockedByDefault: true,
+    unlockReq: { desc: 'Mundo marítimo básico disponible para todos los exploradores.' },
+    features: ['Aguas cristalinas profundas', 'Arrecifes de coral luminiscente', 'Lluvia y humedad constante'],
+    desc: 'Cavernas sumergidas y arrecifes luminiscentes bañados por mareas continuas. Corrientes submarinas alimentan manantiales sagrados donde habitan Pokémon de agua y hielo.'
   });
 
   register({
     id: 'ground',
     name: 'Cañón Árido',
-    subtitle: 'Desierto Terráqueo',
+    subtitle: 'Desfiladero Terráqueo',
     type: 'procedural',
     pokemonType: 'ground',
     biomeIndex: 2,
@@ -321,13 +411,16 @@ G.StageRegistry = (() => {
     weather: 'sand',
     icon: '🏜️',
     badgeColor: '#d4a373',
-    desc: 'Estratos de arenisca rojiza, tierra árida y tormentas de arena.'
+    unlockedByDefault: false,
+    unlockReq: { time: 90, level: 6, desc: 'Sobrevive al menos 1:30 min o alcanza Nivel 6 en cualquier partida.' },
+    features: ['Dunas y estratos de arenisca rojiza', 'Lodazales espesos', 'Tormentas de arena'],
+    desc: 'Un desfiladero implacable esculpido por siglos de vientos desérticos. Los torbellinos de arena ocultan grietas profundas y criaturas subterráneas adaptadas a la sequedad extrema.'
   });
 
   register({
     id: 'bug',
     name: 'Bosque Colmena',
-    subtitle: 'Selva Miriápoda',
+    subtitle: 'Selva Miriápoda Ancestral',
     type: 'procedural',
     pokemonType: 'bug',
     biomeIndex: 3,
@@ -336,13 +429,16 @@ G.StageRegistry = (() => {
     weather: 'fog',
     icon: '🐛',
     badgeColor: '#7cb342',
-    desc: 'Vegetación exuberante inspirada en Rising Spire, ciénagas de savia y árboles ancestrales.'
+    unlockedByDefault: false,
+    unlockReq: { time: 180, kills: 80, desc: 'Sobrevive al menos 3:00 min o derrota a 80 Pokémon salvajes.' },
+    features: ['Manto de musgo fértil', 'Arboledas frondosas de Rising Spire', 'Ciénagas de savia dulce'],
+    desc: 'Una selva milenaria impenetrable inspirada en Rising Spire donde la copa de los árboles bloquea la luz. La savia dorada brota de raíces colosales atrayendo colonias enteras de Pokémon bicho y planta.'
   });
 
   register({
     id: 'flying',
     name: 'Pico Celeste',
-    subtitle: 'Cumbre Ventosa',
+    subtitle: 'Cumbre Ventosa de los Cielos',
     type: 'procedural',
     pokemonType: 'flying',
     biomeIndex: 4,
@@ -351,7 +447,10 @@ G.StageRegistry = (() => {
     weather: 'fog',
     icon: '🦅',
     badgeColor: '#90caf9',
-    desc: 'Cumbres rocosas por encima de las nubes, manantiales puros y vientos veloces.'
+    unlockedByDefault: false,
+    unlockReq: { time: 300, bosses: 1, desc: 'Sobrevive al menos 5:00 min o vence a un jefe salvaje en la mazmorra.' },
+    features: ['Cumbres rocosas sobre las nubes', 'Escarcha alpina', 'Vientos huracanados veloces'],
+    desc: 'La cumbre más escarpada de la cordillera, situada por encima del manto de nubes. Corrientes térmicas ascendentes y vientos implacables desafían a los entrenadores que buscan tocar el cielo.'
   });
 
   // Aliases de compatibilidad hacia atrás
@@ -367,7 +466,12 @@ G.StageRegistry = (() => {
     validate,
     setActive,
     getActive,
-    getByType
+    getByType,
+    isUnlocked,
+    unlock,
+    getUnlockProgress,
+    getUnlocked,
+    getLocked
   };
 })();
 

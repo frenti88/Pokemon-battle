@@ -331,7 +331,27 @@ test('Escenarios Elementales: 5 biomas únicos con tipos Fuego, Agua, Tierra, In
   assert.ok(G.StageRegistry.get('crystal'), 'Alias crystal debe existir');
   assert.ok(G.StageRegistry.get('forest'), 'Alias forest debe existir');
 
-  // 4. Validar assets de referencia descargados en disco
+  // 4. Validar disponibilidad y desbloqueo de mundos
+  assert.strictEqual(G.StageRegistry.isUnlocked('fire'), true, 'Volcán Ígneo debe estar disponible por defecto');
+  assert.strictEqual(G.StageRegistry.isUnlocked('water'), true, 'Gruta Marina debe estar disponible por defecto');
+  assert.strictEqual(G.StageRegistry.isUnlocked('flying'), false, 'Pico Celeste debe estar bloqueado inicialmente');
+
+  const unlBefore = G.StageRegistry.getUnlocked();
+  assert.ok(unlBefore.some(s => s.id === 'fire'), 'Volcán Ígneo en lista de disponibles');
+  assert.ok(unlBefore.some(s => s.id === 'water'), 'Gruta Marina en lista de disponibles');
+
+  const lckBefore = G.StageRegistry.getLocked();
+  assert.ok(lckBefore.some(s => s.id === 'flying'), 'Pico Celeste en lista de bloqueados');
+  assert.ok(lckBefore.some(s => s.id === 'ground'), 'Cañón Árido en lista de bloqueados');
+
+  const progGround = G.StageRegistry.getUnlockProgress('ground');
+  assert.ok(progGround && typeof progGround.desc === 'string' && progGround.desc.length > 0, 'Requisito de Cañón Árido');
+
+  // Desbloquear manualmente y comprobar
+  G.StageRegistry.unlock('flying');
+  assert.strictEqual(G.StageRegistry.isUnlocked('flying'), true, 'Pico Celeste debe estar desbloqueado tras llamar unlock()');
+
+  // 5. Validar assets de referencia descargados en disco
   const tilesetDir = path.join(__dirname, '..', 'assets', 'tilesets');
   assert.ok(fs.existsSync(tilesetDir), 'Carpeta assets/tilesets debe existir');
   assert.ok(fs.existsSync(path.join(tilesetDir, 'forest_plains.png')), 'forest_plains.png debe existir');

@@ -281,10 +281,14 @@ async function runBrowserTests() {
     await page.screenshot({ path: path.join(SCREENSHOTS_DIR, '02_main_menu.png') });
 
     // -------------------------------------------------------------
-    // 8. SELECTOR DE ESCENARIOS ELEMENTALES
+    // 8. APARTADO DE MUNDOS Y ESCENARIOS ELEMENTALES
     // -------------------------------------------------------------
-    console.log('\n[8/8] Verificando selector interactivo de 5 escenarios elementales...');
-    await page.locator('#scr-menu [data-go="play"]').click();
+    console.log('\n[8/8] Verificando apartado de Mundos y escenarios (disponibles y bloqueados)...');
+    
+    // Verificar que existe el botón de Mundos en el menú principal
+    const btnMundos = page.locator('#scr-menu [data-go="stages"]');
+    assert.strictEqual(await btnMundos.isVisible(), true, 'El botón de Mundos debe estar visible en el menú principal');
+    await btnMundos.click();
     await page.waitForTimeout(600);
 
     const stagesScreen = page.locator('#scr-stages');
@@ -294,6 +298,29 @@ async function runBrowserTests() {
     const stageCount = await stageCards.count();
     console.log(`  Tarjetas de escenarios visibles en selector: ${stageCount}`);
     assert.strictEqual(stageCount, 5, 'Deben existir exactamente 5 escenarios elementales');
+
+    // Verificar presencia de badges de disponibles y bloqueados
+    const unlockedBadges = await page.locator('.stage-status-badge.unlocked').count();
+    const lockedBadges = await page.locator('.stage-status-badge.locked').count();
+    console.log(`  Mundos disponibles: ${unlockedBadges} | Mundos bloqueados: ${lockedBadges}`);
+    assert.ok(unlockedBadges >= 2, 'Deben haber al menos 2 mundos disponibles inicialmente');
+    assert.ok(lockedBadges >= 1, 'Deben haber mundos bloqueados inicialmente');
+
+    // Probar filtro de sólo disponibles
+    await page.locator('#stage-tabs [data-filter="unlocked"]').click();
+    await page.waitForTimeout(300);
+    const unlFilteredCount = await page.locator('.stage-card').count();
+    assert.strictEqual(unlFilteredCount, unlockedBadges, 'El filtro de disponibles debe mostrar sólo mundos desbloqueados');
+
+    // Probar filtro de sólo bloqueados
+    await page.locator('#stage-tabs [data-filter="locked"]').click();
+    await page.waitForTimeout(300);
+    const lckFilteredCount = await page.locator('.stage-card').count();
+    assert.strictEqual(lckFilteredCount, lockedBadges, 'El filtro de bloqueados debe mostrar sólo mundos bloqueados');
+
+    // Volver a filtro Todos
+    await page.locator('#stage-tabs [data-filter="all"]').click();
+    await page.waitForTimeout(300);
 
     await page.screenshot({ path: path.join(SCREENSHOTS_DIR, '07_stage_selector.png') });
 

@@ -49,6 +49,9 @@ G.Icons = (() => {
     magnet: { pal: { r: '#ff5f6d', s: '#c23a4b', w: '#e8e8f0' }, rows: [
       '............', '..kkkkkkkk..', '.krrrrrrrrk.', 'krrsskkssrrk', 'krrk....krrk', 'krrk....krrk',
       'krrk....krrk', 'kwwk....kwwk', 'kwwk....kwwk', 'kkkk....kkkk', '............', '............'] },
+    map: { pal: { y: '#ffd23f', o: '#c08a10', g: '#5fe08a', b: '#4fb4ff', w: '#f4f4ff' }, rows: [
+      '..kkkkkkkk..', '.kyyyybbbyk.', '.kyyygbbbyk.', 'kgyygggbyykk', 'kggyyygbyyyk', 'kbbyyygyyybk',
+      'kbbbyygyyybk', 'kbbbyyyyyybk', '.kyybyyybyk.', '.kybbbyyyyk.', '..kkkkkkkk..', '............'] },
     book: { pal: { c: '#4fb4ff', d: '#2a6fb0', p: '#f4f4ff', y: '#ffd23f' }, rows: [
       '............', '.kkkkkkkkkk.', '.kcccccccck.', '.kcyyyyyyck.', '.kcccccccck.', '.kccyyyyyck.',
       '.kcccccccck.', '.kcccccccck.', '.kddddddddk.', '.kppppppppk.', '.kkkkkkkkkk.', '............'] },

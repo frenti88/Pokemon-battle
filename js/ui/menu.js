@@ -5,13 +5,14 @@ G.MenuUI = (() => {
   let dexFilter = 'all', dexGen = 1, dexSel = null;
 
   function init() {
-    const ICON = { play: 'ball', dex: 'book', upgrades: 'up', gacha: 'ball4', goals: 'medal3', friends: 'friends', rank: 'trophy', settings: 'gear' };
+    const ICON = { play: 'ball', stages: 'map', dex: 'book', upgrades: 'up', gacha: 'ball4', goals: 'medal3', friends: 'friends', rank: 'trophy', settings: 'gear' };
     document.querySelectorAll('#scr-menu [data-go]').forEach(b => {
-      b.insertAdjacentHTML('afterbegin', `<span class="mi-ico">${G.Icons.html(ICON[b.dataset.go], 26)}</span>`);
+      b.insertAdjacentHTML('afterbegin', `<span class="mi-ico">${G.Icons.html(ICON[b.dataset.go] || 'map', 26)}</span>`);
       b.dataset.sfx = b.dataset.go === 'play' ? 'confirm' : 'click';
       b.onclick = () => {
         const go = b.dataset.go;
         if (go === 'play') { if (G.Social.room) G.LobbyUI.open(); else if (G.StageUI) G.StageUI.open(); else G.Flow.play(); }
+        else if (go === 'stages') { if (G.StageUI) G.StageUI.open(); }
         else if (go === 'dex') openDex();
         else if (go === 'upgrades') openUpgrades();
         else if (go === 'gacha') G.GachaUI.open();
@@ -53,6 +54,12 @@ G.MenuUI = (() => {
     const owned = Object.keys(s.owned).filter(d => G.DEX_BY[d] && !G.DEX_BY[d].disabled).length;
     const shinies = Object.keys(s.shiny || {}).filter(d => G.DEX_BY[d] && !G.DEX_BY[d].disabled).length;
     $('menu-dex-count').textContent = `${owned} / ${enabledTotal}` + (shinies ? ` · ${shinies} shiny` : '');
+
+    const stagesSub = $('menu-stages-sub');
+    if (stagesSub && G.StageRegistry) {
+      const unl = G.StageRegistry.getUnlocked().length;
+      stagesSub.textContent = `${unl} / 5 disponibles`;
+    }
 
     const st = s.stats;
     $('menu-stats').innerHTML =
