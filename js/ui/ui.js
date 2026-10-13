@@ -7,17 +7,21 @@
  */
 G.UI = (() => {
   const $ = id => document.getElementById(id);
-  const SCREENS = ['scr-login', 'scr-test', 'scr-result', 'scr-starters', 'scr-menu',
+  const SCREENS = ['scr-login', 'scr-test', 'scr-result', 'scr-starters', 'scr-stages', 'scr-menu',
                    'scr-dex', 'scr-upgrades', 'scr-gacha', 'scr-levelup', 'scr-pause', 'scr-over',
-                   'scr-nick', 'scr-friends', 'scr-lobby', 'scr-rank', 'scr-item', 'scr-goals'];
+                   'scr-nick', 'scr-friends', 'scr-lobby', 'scr-rank', 'scr-item', 'scr-goals',
+                   'scr-settings', 'scr-legal', 'scr-profile'];
 
   function show(id, keepMenu = false) {
-    for (const s of SCREENS) if (s !== id && !(keepMenu && s === 'scr-menu')) $(s).classList.add('hidden');
-    $(id).classList.remove('hidden');
+    document.querySelectorAll('.scr').forEach(el => {
+      if (el.id !== id && !(keepMenu && el.id === 'scr-menu')) el.classList.add('hidden');
+    });
+    const el = $(id);
+    if (el) el.classList.remove('hidden');
   }
-  function hide(id) { $(id).classList.add('hidden'); }
-  function hideAll() { for (const s of SCREENS) $(s).classList.add('hidden'); }
-  function isOpen(id) { return !$(id).classList.contains('hidden'); }
+  function hide(id) { const el = $(id); if (el) el.classList.add('hidden'); }
+  function hideAll() { document.querySelectorAll('.scr').forEach(el => el.classList.add('hidden')); }
+  function isOpen(id) { const el = $(id); return el ? !el.classList.contains('hidden') : false; }
 
   /** Barra superior (monedas, usuario, sonido) sólo fuera de las runs. */
   function chrome(on) {
@@ -136,13 +140,121 @@ G.UI = (() => {
     };
   }
 
+  function wireModalsAndKeyboard() {
+    // Cerrar panel de sonido al pulsar fuera y clic en fondo oscuro de modales (.scr.dim)
+    document.addEventListener('click', e => {
+      const p = $('sound-panel');
+      const btn = $('btn-sound');
+      if (p && !p.classList.contains('hidden')) {
+        if (!p.contains(e.target) && (!btn || !btn.contains(e.target))) {
+          p.classList.add('hidden');
+        }
+      }
+
+      // Cerrar modal al hacer clic en el backdrop oscurecido fuera de la caja
+      const target = e.target;
+      if (target && target.classList && target.classList.contains('scr') && target.classList.contains('dim')) {
+        const id = target.id;
+        if (id === 'scr-levelup' || id === 'scr-item' || id === 'scr-over' || id === 'scr-test' || id === 'scr-result' || id === 'scr-starters') {
+          return;
+        }
+        if (id === 'scr-stages') {
+          if (G.StageUI && G.StageUI.close) G.StageUI.close();
+          else target.classList.add('hidden');
+          if (G.MenuUI) G.MenuUI.open();
+          return;
+        }
+        if (id === 'scr-settings') {
+          if (G.SettingsUI && G.SettingsUI.close) G.SettingsUI.close();
+          else target.classList.add('hidden');
+          return;
+        }
+        if (id === 'scr-legal') {
+          closeLegal();
+          return;
+        }
+        if (id === 'scr-profile' || id === 'scr-nick') {
+          target.classList.add('hidden');
+          return;
+        }
+        if (id === 'scr-pause') {
+          if (G.Game && G.Game.state === 'paused') G.Game.togglePause();
+          else target.classList.add('hidden');
+          return;
+        }
+        // Subpantallas del menú principal
+        target.classList.add('hidden');
+        if (G.MenuUI) G.MenuUI.open();
+      }
+
+      // Delegación universal de botones con [data-back]
+      const backBtn = e.target.closest('[data-back]');
+      if (backBtn) {
+        const parentScr = backBtn.closest('.scr');
+        if (parentScr) parentScr.classList.add('hidden');
+        if (G.MenuUI) G.MenuUI.open();
+      }
+    });
+
+    // Tecla Escape global para cerrar modales y volver
+    addEventListener('keydown', e => {
+      if (e.key !== 'Escape') return;
+
+      const snd = $('sound-panel');
+      if (snd && !snd.classList.contains('hidden')) {
+        snd.classList.add('hidden');
+        return;
+      }
+
+      const pwaModal = $('modal-pwa-ios');
+      if (pwaModal && !pwaModal.classList.contains('hidden')) {
+        pwaModal.classList.add('hidden');
+        return;
+      }
+
+      if (isOpen('scr-legal')) {
+        closeLegal();
+        return;
+      }
+
+      if (isOpen('scr-settings')) {
+        if (G.SettingsUI && G.SettingsUI.close) G.SettingsUI.close();
+        else hide('scr-settings');
+        return;
+      }
+
+      if (isOpen('scr-profile')) { hide('scr-profile'); return; }
+      if (isOpen('scr-nick')) { hide('scr-nick'); return; }
+
+      if (isOpen('scr-stages')) {
+        if (G.StageUI && G.StageUI.close) G.StageUI.close();
+        else hide('scr-stages');
+        if (G.MenuUI) G.MenuUI.open();
+        return;
+      }
+
+      const menuSubscreens = ['scr-dex', 'scr-upgrades', 'scr-gacha', 'scr-friends', 'scr-rank', 'scr-goals', 'scr-lobby'];
+      for (const s of menuSubscreens) {
+        if (isOpen(s)) {
+          const pullFx = $('pull-fx');
+          if (s === 'scr-gacha' && pullFx && !pullFx.classList.contains('hidden')) return;
+          hide(s);
+          if (G.MenuUI) G.MenuUI.open();
+          return;
+        }
+      }
+    });
+  }
+
   function initChrome() {
     G.Icons.installCss();
     wireLegal();
     G.DB.onSync(() => { if (!$('topbar').classList.contains('hidden')) refreshCoins(); });
     wireSounds();
+    wireModalsAndKeyboard();
     refreshSoundIcon();
-    $('btn-sound').onclick = () => {
+    $('btn-sound').onclick = (e) => {
+      e.stopPropagation();
       const p = $('sound-panel');
       p.classList.toggle('hidden');
       if (!p.classList.contains('hidden')) soundControls(p);

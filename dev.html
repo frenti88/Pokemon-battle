@@ -229,24 +229,27 @@
 </section>
 
 <!-- ====== Selector de Escenarios Elementales ====== -->
-<section id="scr-stages" class="scr dim hidden">
+<section id="scr-stages" class="scr dim hidden" role="dialog" aria-modal="true" aria-labelledby="stages-title">
   <div class="box wide stage-selector-box">
-    <div class="row between items-center" style="margin-bottom:12px">
+    <div class="row between items-center stage-header-row" style="margin-bottom:12px">
       <div>
-        <h2>Mundos y Escenarios de Batalla</h2>
+        <h2 id="stages-title">Mundos y Escenarios de Batalla</h2>
         <p class="sub" id="stages-sub" style="margin:3px 0 0">Explora los biomas elementales. Consulta sus características y desbloquea nuevos mundos.</p>
       </div>
       <div class="row" style="gap:8px">
-        <button id="stages-random" class="btn gold small" type="button">🎲 Aleatorio</button>
-        <button id="stages-back" class="btn ghost small" type="button">Volver</button>
+        <button id="stages-random" class="btn gold small" type="button" aria-label="Elegir escenario aleatorio">🎲 Aleatorio</button>
+        <button id="stages-back" class="btn ghost small" data-back type="button" aria-label="Volver al menú principal">Volver</button>
       </div>
     </div>
-    <div class="stage-tabs-row" id="stage-tabs">
-      <button class="stage-tab active" data-filter="all" type="button">Todos (5)</button>
-      <button class="stage-tab" data-filter="unlocked" type="button">🔓 Disponibles</button>
-      <button class="stage-tab" data-filter="locked" type="button">🔒 Bloqueados</button>
+    <div class="stage-tabs-row" id="stage-tabs" role="tablist" aria-label="Filtrar mundos">
+      <button class="stage-tab active" data-filter="all" type="button" role="tab" aria-selected="true">Todos (5)</button>
+      <button class="stage-tab" data-filter="unlocked" type="button" role="tab" aria-selected="false">🔓 Disponibles</button>
+      <button class="stage-tab" data-filter="locked" type="button" role="tab" aria-selected="false">🔒 Bloqueados</button>
     </div>
     <div class="stages-grid" id="stages-grid"></div>
+    <div class="row center" style="margin-top:16px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.08)">
+      <button id="stages-back-bottom" class="btn ghost small" data-back type="button" aria-label="Volver al menú principal">← Volver al Menú</button>
+    </div>
   </div>
 </section>
 
@@ -296,13 +299,13 @@
 <div id="credits-line" class="credits-line hidden">Proyecto de fan sin ánimo de lucro · Sprites: SpriteCollab (CC BY-NC 4.0) · Pokémon © Nintendo/Creatures/GAME FREAK · <a href="#" class="legal-link" data-legal>Aviso legal</a></div>
 
 <!-- ====== Ajustes ====== -->
-<section id="scr-settings" class="scr dim hidden">
+<section id="scr-settings" class="scr dim hidden" role="dialog" aria-modal="true" aria-labelledby="set-title">
   <div class="box settings">
     <div class="row between">
-      <h2>Ajustes</h2>
+      <h2 id="set-title">Ajustes</h2>
       <div class="row" style="gap:6px">
         <button class="btn small ghost hidden" id="btn-pwa-install-settings" type="button">📲 Instalar</button>
-        <button class="btn small ghost" id="set-close">Cerrar</button>
+        <button class="btn small ghost" id="set-close" aria-label="Cerrar ajustes">Cerrar</button>
       </div>
     </div>
     <div class="tabs" id="set-tabs">
@@ -317,9 +320,9 @@
 </section>
 
 <!-- ====== Aviso legal y privacidad ====== -->
-<section id="scr-legal" class="scr dim hidden">
+<section id="scr-legal" class="scr dim hidden" role="dialog" aria-modal="true" aria-labelledby="legal-title">
   <div class="box legal" style="width:min(640px,100%)">
-    <div class="row between"><h2>Aviso legal</h2><button class="btn small ghost" id="legal-close">Cerrar</button></div>
+    <div class="row between"><h2 id="legal-title">Aviso legal</h2><button class="btn small ghost" id="legal-close" aria-label="Cerrar aviso legal">Cerrar</button></div>
     <h3>Proyecto de fan</h3>
     <p><b>Super Batalla Pokémon</b> es un juego hecho por fans, <b>gratuito y sin ánimo de lucro</b>.
       No tiene anuncios ni compras.</p>
@@ -409,10 +412,10 @@
 </section>
 
 <!-- ====== Amigos ====== -->
-<section id="scr-friends" class="scr dim hidden">
+<section id="scr-friends" class="scr dim hidden" role="dialog" aria-modal="true" aria-labelledby="fr-title">
   <div class="box wide">
-    <div class="row between"><h2>Amigos</h2>
-      <div class="row"><button id="fr-room" class="btn small gold hidden">Ir a la sala</button><button class="btn small ghost" data-back>Volver</button></div></div>
+    <div class="row between"><h2 id="fr-title">Amigos</h2>
+      <div class="row"><button id="fr-room" class="btn small gold hidden">Ir a la sala</button><button class="btn small ghost" data-back aria-label="Volver al menú">Volver</button></div></div>
     <p class="sub" id="fr-me"></p>
     <form id="fr-add" class="row" autocomplete="off">
       <input id="fr-name" class="field grow" maxlength="16" spellcheck="false" placeholder="Apodo de tu amigo">
@@ -424,10 +427,10 @@
 </section>
 
 <!-- ====== Sala (partida en grupo) ====== -->
-<section id="scr-lobby" class="scr dim hidden">
+<section id="scr-lobby" class="scr dim hidden" role="dialog" aria-modal="true" aria-labelledby="lobby-title">
   <div class="box wide">
-    <div class="row between"><h2>Sala</h2>
-      <div class="row"><button id="lobby-menu" class="btn small ghost">Menú</button><button id="lobby-leave" class="btn small ghost">Salir de la sala</button></div></div>
+    <div class="row between"><h2 id="lobby-title">Sala</h2>
+      <div class="row"><button id="lobby-menu" class="btn small ghost" aria-label="Volver al menú">Menú</button><button id="lobby-leave" class="btn small ghost" aria-label="Salir de la sala">Salir de la sala</button></div></div>
     <p class="sub" id="lobby-sub"></p>
     <div id="lobby-members" class="lobby-members"></div>
     <h3 id="lobby-inv-title" style="margin:14px 0 6px">Invitar amigos</h3>
@@ -440,9 +443,9 @@
 </section>
 
 <!-- ====== Ranking ====== -->
-<section id="scr-rank" class="scr dim hidden">
+<section id="scr-rank" class="scr dim hidden" role="dialog" aria-modal="true" aria-labelledby="rank-title">
   <div class="box wide">
-    <div class="row between"><h2>Ranking <span class="sub" style="font-size:15px">· tiempo aguantado</span></h2><button class="btn small ghost" data-back>Volver</button></div>
+    <div class="row between"><h2 id="rank-title">Ranking <span class="sub" style="font-size:15px">· tiempo aguantado</span></h2><button class="btn small ghost" data-back aria-label="Volver al menú">Volver</button></div>
     <div class="gen-tabs" id="rk-mode"></div>
     <div class="filters" id="rk-period"></div>
     <div class="row rk-tools">
@@ -457,9 +460,9 @@
 </section>
 
 <!-- ====== Misiones, logros y perfil ====== -->
-<section id="scr-goals" class="scr dim hidden">
+<section id="scr-goals" class="scr dim hidden" role="dialog" aria-modal="true" aria-labelledby="goals-title">
   <div class="box wide">
-    <div class="row between"><h2>Misiones</h2><button class="btn small ghost" data-back>Volver</button></div>
+    <div class="row between"><h2 id="goals-title">Misiones</h2><button class="btn small ghost" data-back aria-label="Volver al menú">Volver</button></div>
     <div class="tabs" id="goals-tabs">
       <div class="tab on" data-tab="missions">Misiones</div>
       <div class="tab" data-tab="ach">Logros</div>
@@ -470,9 +473,9 @@
 </section>
 
 <!-- ====== Perfil público de un jugador ====== -->
-<section id="scr-profile" class="scr dim hidden">
+<section id="scr-profile" class="scr dim hidden" role="dialog" aria-modal="true" aria-label="Perfil de jugador">
   <div class="box profile-box">
-    <div class="row end"><button class="btn small ghost" id="prof-close">Cerrar</button></div>
+    <div class="row end"><button class="btn small ghost" id="prof-close" aria-label="Cerrar perfil">Cerrar</button></div>
     <div id="prof-body"></div>
   </div>
 </section>
@@ -487,9 +490,9 @@
 </div>
 
 <!-- ====== Colección ====== -->
-<section id="scr-dex" class="scr dim hidden">
+<section id="scr-dex" class="scr dim hidden" role="dialog" aria-modal="true" aria-labelledby="dex-title">
   <div class="box wide">
-    <div class="row between"><h2>Pokémon <span id="dex-total" class="sub" style="font-size:15px"></span></h2><button class="btn small ghost" data-back>Volver</button></div>
+    <div class="row between"><h2 id="dex-title">Pokémon <span id="dex-total" class="sub" style="font-size:15px"></span></h2><button class="btn small ghost" data-back aria-label="Volver al menú">Volver</button></div>
     <div class="gen-tabs" id="dex-gens"></div>
     <div class="split" style="margin-top:8px">
       <div>
@@ -502,9 +505,9 @@
 </section>
 
 <!-- ====== Mejoras ====== -->
-<section id="scr-upgrades" class="scr dim hidden">
+<section id="scr-upgrades" class="scr dim hidden" role="dialog" aria-modal="true" aria-labelledby="upg-title">
   <div class="box wide">
-    <div class="row between"><h2>Mejoras</h2><button class="btn small ghost" data-back>Volver</button></div>
+    <div class="row between"><h2 id="upg-title">Mejoras</h2><button class="btn small ghost" data-back aria-label="Volver al menú">Volver</button></div>
     <div class="upg-head">
       <canvas id="upg-stage" class="stage" width="120" height="96"></canvas>
       <div class="grow">
@@ -520,9 +523,9 @@
 </section>
 
 <!-- ====== Gacha ====== -->
-<section id="scr-gacha" class="scr dim hidden">
+<section id="scr-gacha" class="scr dim hidden" role="dialog" aria-modal="true" aria-labelledby="gacha-title">
   <div class="box wide">
-    <div class="row between"><h2>Gacha</h2><button class="btn small ghost" data-back>Volver</button></div>
+    <div class="row between"><h2 id="gacha-title">Gacha</h2><button class="btn small ghost" data-back aria-label="Volver al menú">Volver</button></div>
     <div class="gen-tabs" id="gacha-gens"></div>
     <div class="split" style="margin-top:8px">
       <div>
@@ -552,26 +555,26 @@
 </div>
 
 <!-- ====== Durante la run ====== -->
-<section id="scr-levelup" class="scr dim hidden">
+<section id="scr-levelup" class="scr dim hidden" role="dialog" aria-modal="true" aria-labelledby="lvl-title">
   <div class="box center">
-    <h2>¡Nivel <span id="lvl-num">2</span>!</h2>
+    <h2 id="lvl-title">¡Nivel <span id="lvl-num">2</span>!</h2>
     <p class="sub">Elige una recompensa · <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd></p>
     <div id="cards" class="cards"></div>
     <p id="lvl-wait" class="note hidden"></p>
   </div>
 </section>
 
-<section id="scr-item" class="scr dim hidden">
+<section id="scr-item" class="scr dim hidden" role="dialog" aria-modal="true" aria-labelledby="item-title">
   <div class="box center">
-    <h2>¡Un objeto!</h2>
+    <h2 id="item-title">¡Un objeto!</h2>
     <p class="sub">Sólo puedes llevar uno · <kbd>1</kbd> <kbd>2</kbd></p>
     <div id="item-cards" class="cards"></div>
   </div>
 </section>
 
-<section id="scr-pause" class="scr dim hidden">
+<section id="scr-pause" class="scr dim hidden" role="dialog" aria-modal="true" aria-labelledby="pause-title">
   <div class="box center" style="width:min(460px,100%)">
-    <h2>Pausa</h2>
+    <h2 id="pause-title">Pausa</h2>
     <p class="sub kbd-hint"><kbd>WASD</kbd> moverse · <kbd>1</kbd>–<kbd>4</kbd> movimiento · <kbd>Q</kbd>/<kbd>E</kbd> ciclar · <kbd>Esc</kbd> pausa</p>
     <p class="sub touch-hint">Arrastra el dedo para moverte · toca un ataque para cambiarlo</p>
     <p id="pause-coop" class="note hidden">Partida en grupo: el juego sigue mientras estás aquí.</p>
@@ -584,7 +587,7 @@
   </div>
 </section>
 
-<section id="scr-over" class="scr dim hidden">
+<section id="scr-over" class="scr dim hidden" role="dialog" aria-modal="true" aria-labelledby="over-title">
   <div class="box center" style="width:min(480px,100%)">
     <h2 id="over-title">Has caído…</h2>
     <div id="over-stats" class="stats"></div>

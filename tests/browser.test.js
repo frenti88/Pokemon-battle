@@ -324,6 +324,67 @@ async function runBrowserTests() {
 
     await page.screenshot({ path: path.join(SCREENSHOTS_DIR, '07_stage_selector.png') });
 
+    // 8.1 Probar botón "Volver" superior de Mundos
+    console.log('  Probando botón Volver superior en Mundos (#stages-back)...');
+    await page.locator('#stages-back').click();
+    await page.waitForTimeout(400);
+    assert.strictEqual(await page.locator('#scr-stages').isVisible(), false, '#scr-stages debe estar oculto tras pulsar Volver');
+    assert.strictEqual(await page.locator('#scr-menu').isVisible(), true, '#scr-menu debe estar visible tras pulsar Volver');
+
+    // 8.2 Reabrir Mundos y probar botón "Volver" inferior (#stages-back-bottom)
+    console.log('  Probando botón Volver inferior en Mundos (#stages-back-bottom)...');
+    await btnMundos.click();
+    await page.waitForTimeout(400);
+    assert.strictEqual(await page.locator('#scr-stages').isVisible(), true, '#scr-stages debe reabrirse');
+    await page.locator('#stages-back-bottom').click();
+    await page.waitForTimeout(400);
+    assert.strictEqual(await page.locator('#scr-stages').isVisible(), false, '#scr-stages debe cerrarse con botón inferior');
+    assert.strictEqual(await page.locator('#scr-menu').isVisible(), true, '#scr-menu debe volver a mostrarse');
+
+    // 8.3 Reabrir Mundos y probar retorno con tecla Escape
+    console.log('  Probando cierre de Mundos con tecla Escape...');
+    await btnMundos.click();
+    await page.waitForTimeout(400);
+    assert.strictEqual(await page.locator('#scr-stages').isVisible(), true);
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(400);
+    assert.strictEqual(await page.locator('#scr-stages').isVisible(), false, '#scr-stages debe cerrarse al pulsar Escape');
+    assert.strictEqual(await page.locator('#scr-menu').isVisible(), true, '#scr-menu debe quedar visible');
+
+    // 8.4 Reabrir Mundos y probar cierre al hacer clic en el backdrop oscurecido fuera del box
+    console.log('  Probando cierre de Mundos al hacer clic en el backdrop...');
+    await btnMundos.click();
+    await page.waitForTimeout(400);
+    assert.strictEqual(await page.locator('#scr-stages').isVisible(), true);
+    await page.evaluate(() => {
+      const scr = document.getElementById('scr-stages');
+      scr.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+    });
+    await page.waitForTimeout(400);
+    assert.strictEqual(await page.locator('#scr-stages').isVisible(), false, '#scr-stages debe cerrarse al hacer clic en el backdrop');
+    assert.strictEqual(await page.locator('#scr-menu').isVisible(), true, '#scr-menu debe quedar visible');
+
+    // 8.5 Probar que los modales de Ajustes y Pokédex también cierran limpiamente
+    console.log('  Probando accesibilidad y cierre en Ajustes y Pokédex...');
+    await page.locator('#btn-settings').click();
+    await page.waitForTimeout(300);
+    assert.strictEqual(await page.locator('#scr-settings').isVisible(), true, '#scr-settings debe abrirse');
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(300);
+    assert.strictEqual(await page.locator('#scr-settings').isVisible(), false, '#scr-settings debe cerrarse con Escape');
+
+    await page.locator('#scr-menu [data-go="dex"]').click();
+    await page.waitForTimeout(400);
+    assert.strictEqual(await page.locator('#scr-dex').isVisible(), true, '#scr-dex debe abrirse');
+    await page.locator('#scr-dex [data-back]').click();
+    await page.waitForTimeout(400);
+    assert.strictEqual(await page.locator('#scr-dex').isVisible(), false, '#scr-dex debe cerrarse con botón Volver');
+    assert.strictEqual(await page.locator('#scr-menu').isVisible(), true, '#scr-menu debe quedar visible');
+
+    // Reabrir Mundos para la prueba de combate
+    await btnMundos.click();
+    await page.waitForTimeout(400);
+
     // Iniciar combate en el escenario de Agua (Gruta Marina)
     const waterBtn = page.locator('.stage-water .stage-play-btn');
     await waterBtn.click();

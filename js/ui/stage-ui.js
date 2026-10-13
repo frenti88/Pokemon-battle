@@ -12,9 +12,37 @@ G.StageUI = (() => {
   const STAGE_ORDER = ['fire', 'water', 'ground', 'bug', 'flying'];
   let currentFilter = 'all';
 
+  function close() {
+    const s = $('scr-stages');
+    if (s) s.classList.add('hidden');
+  }
+
   function init() {
     const btnBack = $('stages-back');
-    if (btnBack) btnBack.onclick = () => G.MenuUI.open();
+    if (btnBack) {
+      btnBack.onclick = () => {
+        close();
+        G.MenuUI.open();
+      };
+    }
+
+    const btnBackBottom = $('stages-back-bottom');
+    if (btnBackBottom) {
+      btnBackBottom.onclick = () => {
+        close();
+        G.MenuUI.open();
+      };
+    }
+
+    const scr = $('scr-stages');
+    if (scr) {
+      scr.onclick = e => {
+        if (e.target === scr) {
+          close();
+          G.MenuUI.open();
+        }
+      };
+    }
 
     const btnRandom = $('stages-random');
     if (btnRandom) {
@@ -23,6 +51,7 @@ G.StageUI = (() => {
         const pool = unlocked.length ? unlocked.map(s => s.id) : STAGE_ORDER;
         const randId = G.U.pick(pool);
         G.Audio.sfx('confirm');
+        close();
         G.Flow.play(randId);
       };
     }
@@ -214,6 +243,7 @@ G.StageUI = (() => {
         if (playBtn) {
           playBtn.onclick = () => {
             G.Audio.sfx('confirm');
+            close();
             G.Flow.play(st.id);
           };
         }
@@ -236,6 +266,7 @@ G.StageUI = (() => {
 
   return {
     init,
-    open
+    open,
+    close
   };
 })();
