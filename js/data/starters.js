@@ -161,6 +161,15 @@ G.OakFlow = {
         { id: '2b', text: 'Intento ganar su confianza.', trait: 'protector', sub: 'Decisión cercana y comprensiva' },
         { id: '2c', text: 'Estudio su comportamiento antes de actuar.', trait: 'curioso', sub: 'Decisión reflexiva y estratégica' }
       ]
+    },
+    {
+      id: 'q3',
+      text: 'Descubres una cueva secreta con una reliquia brillante en su interior. ¿Qué haces?',
+      options: [
+        { id: '3a', text: '¡Entro de inmediato a descubrir su poder sin vacilar!', trait: 'audaz', sub: 'Decisión decidida e intrépida' },
+        { id: '3b', text: 'Avanzo con cautela asegurándome de que el camino sea seguro.', trait: 'protector', sub: 'Decisión prudente y protectora' },
+        { id: '3c', text: 'Examino las inscripciones y gemas antes de tocarla.', trait: 'curioso', sub: 'Decisión analítica y observadora' }
+      ]
     }
   ],
 
@@ -220,6 +229,25 @@ G.OakFlow = {
         { dex: 120, affinity: 'curioso', name: 'Staryu' },
         { dex: 129, affinity: 'audaz', name: 'Magikarp' },
         { dex: 131, affinity: 'protector', name: 'Lapras' }
+      ]
+    },
+    {
+      id: 'cave',
+      name: 'Caverna',
+      title: 'Caverna Misteriosa',
+      desc: 'Galerías subterráneas, cristales brillantes y Pokémon enigmáticos.',
+      theme: 'cave',
+      color: '#4a148c',
+      candidates: [
+        { dex: 92, affinity: 'curioso', name: 'Gastly' },
+        { dex: 63, affinity: 'curioso', name: 'Abra' },
+        { dex: 35, affinity: 'protector', name: 'Clefairy' },
+        { dex: 39, affinity: 'protector', name: 'Jigglypuff' },
+        { dex: 104, affinity: 'protector', name: 'Cubone' },
+        { dex: 41, affinity: 'audaz', name: 'Zubat' },
+        { dex: 81, affinity: 'audaz', name: 'Magnemite' },
+        { dex: 125, affinity: 'audaz', name: 'Electabuzz' },
+        { dex: 147, affinity: 'protector', name: 'Dratini' }
       ]
     }
   ],
@@ -305,20 +333,21 @@ G.OakFlow = {
     const path = this.paths.find(p => p.id === pathId) || this.paths[0];
     const pathName = path.name;
     const trait = (primaryTrait || 'audaz').toLowerCase();
+    const loc = (path.id === 'mountain' || path.id === 'cave') ? `la ${pathName}` : `el ${pathName}`;
 
     const explanations = {
       audaz: [
-        `Tu valentía y tu determinación conectaron profundamente con ${mon.name} en la ${pathName}. ¡Están listos para enfrentar cualquier desafío!`,
+        `Tu valentía y tu determinación conectaron profundamente con ${mon.name} en ${loc}. ¡Están listos para enfrentar cualquier desafío!`,
         `Ese espíritu intrépido y competitivo resonó con la energía de ${mon.name}. ¡Juntos serán una fuerza imparable!`,
-        `No dudas ante el peligro, y ${mon.name} reconoció de inmediato tu coraje en la ${pathName}. ¡Una gran leyenda comienza aquí!`
+        `No dudas ante el peligro, y ${mon.name} reconoció de inmediato tu coraje en ${loc}. ¡Una gran leyenda comienza aquí!`
       ],
       protector: [
-        `Tu empatía y tu deseo de proteger a los demás tocaron el corazón de ${mon.name} en el ${pathName}. ¡Formarán un equipo inseparable!`,
+        `Tu empatía y tu deseo de proteger a los demás tocaron el corazón de ${mon.name} en ${loc}. ¡Formarán un equipo inseparable!`,
         `La calma y lealtad que transmites hicieron que ${mon.name} confiara en ti sin dudarlo. ¡Cuidarán el uno del otro en cada combate!`,
         `Tu nobleza y sentido del compañerismo conectaron de inmediato con ${mon.name}. ¡Su vínculo será su mayor fortaleza!`
       ],
       curioso: [
-        `Tu curiosidad aguda y tu mente estratégica fascinaron a ${mon.name} en el ${pathName}. ¡Descubrirán juntos todos los secretos del camino!`,
+        `Tu curiosidad aguda y tu mente estratégica fascinaron a ${mon.name} en ${loc}. ¡Descubrirán juntos todos los secretos del camino!`,
         `Observas los detalles donde otros no ven nada. ${mon.name} sintió esa inteligencia y decidió acompañarte.`,
         `Tu espíritu explorador y analítico encaja a la perfección con la naturaleza de ${mon.name}. ¡Aprenderán y evolucionarán juntos!`
       ]

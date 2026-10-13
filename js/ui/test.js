@@ -111,8 +111,10 @@ G.TestUI = (() => {
     const oakSpeech = $('oak-speech');
     if (qIdx === 0) {
       oakSpeech.textContent = G.OakFlow.introText;
-    } else {
+    } else if (qIdx === 1) {
       oakSpeech.textContent = 'Un buen entrenador sabe reflexionar antes del peligro. ¿Cómo responderías ante este nuevo desafío?';
+    } else {
+      oakSpeech.textContent = '¡Una última prueba de intuición! El modo en que abordas lo desconocido revelará a tu compañero ideal.';
     }
 
     // Pregunta actual
@@ -164,7 +166,7 @@ G.TestUI = (() => {
     $('oak-phase-balls').classList.add('hidden');
 
     const totalSteps = G.OakFlow.questions.length + 2;
-    $('test-bar').style.width = ((3 / totalSteps) * 100) + '%';
+    $('test-bar').style.width = (((G.OakFlow.questions.length + 1) / totalSteps) * 100) + '%';
     $('test-count').textContent = 'Paso 2 de 3: Elige tu camino';
     $('test-phase-badge').textContent = 'Fase 2: Escenario';
 
@@ -176,7 +178,8 @@ G.TestUI = (() => {
     const pathIcons = {
       forest: '🌲',
       mountain: '⛰️',
-      lake: '🌊'
+      lake: '🌊',
+      cave: '💎'
     };
 
     G.OakFlow.paths.forEach(p => {

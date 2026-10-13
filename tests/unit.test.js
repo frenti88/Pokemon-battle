@@ -392,7 +392,7 @@ test('G.OakFlow: configuración de preguntas, caminos y afinidades', () => {
   assert.ok(typeof G.OakFlow.pokeballsIntro === 'string' && G.OakFlow.pokeballsIntro.length > 0);
 
   // Verificación de preguntas
-  assert.strictEqual(G.OakFlow.questions.length, 2, 'Debe haber exactamente 2 preguntas');
+  assert.strictEqual(G.OakFlow.questions.length, 3, 'Debe haber exactamente 3 preguntas');
   const validTraits = new Set(['audaz', 'protector', 'curioso']);
   for (const q of G.OakFlow.questions) {
     assert.ok(q.id && q.text, 'Pregunta debe tener id y text');
@@ -403,9 +403,9 @@ test('G.OakFlow: configuración de preguntas, caminos y afinidades', () => {
   }
 
   // Verificación de caminos
-  assert.strictEqual(G.OakFlow.paths.length, 3, 'Debe haber 3 caminos (bosque, montaña, lago)');
+  assert.strictEqual(G.OakFlow.paths.length, 4, 'Debe haber 4 caminos (bosque, montaña, lago, caverna)');
   const pathIds = G.OakFlow.paths.map(p => p.id);
-  assert.deepStrictEqual(pathIds.sort(), ['forest', 'lake', 'mountain'].sort());
+  assert.deepStrictEqual(pathIds.sort(), ['cave', 'forest', 'lake', 'mountain'].sort());
 
   for (const p of G.OakFlow.paths) {
     assert.ok(p.candidates.length >= 3, `Camino ${p.id} debe tener al menos 3 candidatos`);
@@ -418,12 +418,12 @@ test('G.OakFlow: configuración de preguntas, caminos y afinidades', () => {
 });
 
 test('G.OakFlow: generación de 3 Pokébolas ponderadas (70% afinidad, 30% sorpresa) sin duplicados', () => {
-  const paths = ['forest', 'mountain', 'lake'];
+  const paths = ['forest', 'mountain', 'lake', 'cave'];
   const testAffinities = [
-    ['audaz', 'audaz'],
-    ['protector', 'curioso'],
-    ['curioso', 'curioso'],
-    ['audaz', 'protector']
+    ['audaz', 'audaz', 'audaz'],
+    ['protector', 'curioso', 'audaz'],
+    ['curioso', 'curioso', 'protector'],
+    ['audaz', 'protector', 'curioso']
   ];
 
   for (const pathId of paths) {

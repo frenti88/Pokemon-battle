@@ -156,11 +156,19 @@ async function runBrowserTests() {
       await q2Ans.click();
       await page.waitForTimeout(500);
 
-      // Fase 2: Elección del camino
+      // Pregunta 3
+      const q3Ans = page.locator('#test-a .answer').first();
+      await q3Ans.waitFor({ state: 'visible', timeout: 5000 });
+      await q3Ans.click();
+      await page.waitForTimeout(500);
+
+      // Fase 2: Elección del camino (4 escenarios disponibles: Bosque, Montaña, Lago, Caverna)
       console.log('  [Fase 2] Seleccionando escenario / camino de la aventura...');
-      const pathCard = page.locator('#oak-path-cards .path-card').first();
-      await pathCard.waitFor({ state: 'visible', timeout: 5000 });
-      await pathCard.click();
+      const pathCards = page.locator('#oak-path-cards .path-card');
+      await pathCards.first().waitFor({ state: 'visible', timeout: 5000 });
+      const pathCount = await pathCards.count();
+      assert.strictEqual(pathCount, 4, 'Deben existir 4 caminos disponibles para comenzar la aventura');
+      await pathCards.first().click();
       await page.waitForTimeout(300);
       await page.screenshot({ path: path.join(SCREENSHOTS_DIR, '01_oak_phase2_paths.png') });
 

@@ -224,7 +224,7 @@ label { display: block; font-size: 14px; color: var(--muted); margin: 8px 0 4px;
 
 /* ---------- Selección de Camino (Fase 2) ---------- */
 .path-cards {
-  display: grid; grid-template-columns: repeat(3, 1fr);
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
   gap: 12px; margin: 12px 0;
 }
 @media (max-width: 600px) {
@@ -249,6 +249,7 @@ label { display: block; font-size: 14px; color: var(--muted); margin: 8px 0 4px;
 .path-card[data-path="forest"] { border-top: 4px solid #2e7d32; }
 .path-card[data-path="mountain"] { border-top: 4px solid #d84315; }
 .path-card[data-path="lake"] { border-top: 4px solid #1565c0; }
+.path-card[data-path="cave"] { border-top: 4px solid #7b1fa2; }
 
 /* ---------- Pokébolas Misteriosas (Fase 3) ---------- */
 .oak-balls-container {
