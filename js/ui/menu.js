@@ -34,6 +34,7 @@ G.MenuUI = (() => {
   // ---------------- menú principal ----------------
 
   function open() {
+    if (G.DB.ensureBaseStageOwned) G.DB.ensureBaseStageOwned();
     const s = G.DB.save;
     if (!s.partner || (G.DEX_BY[s.partner] && G.DEX_BY[s.partner].disabled)) {
       s.partner = 1;
@@ -101,6 +102,7 @@ G.MenuUI = (() => {
   // ---------------- colección ----------------
 
   function openDex() {
+    if (G.DB.ensureBaseStageOwned) G.DB.ensureBaseStageOwned();
     G.UI.show('scr-dex', true);
     const s = G.DB.save;
     if (dexSel == null || (G.DEX_BY[dexSel] && G.DEX_BY[dexSel].disabled)) {

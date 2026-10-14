@@ -492,6 +492,38 @@ test('PWA: validación de Manifest, Service Worker y módulo G.PWA', () => {
   assert.strictEqual(typeof G.PWA.isIos, 'function', 'G.PWA.isIos debe ser función');
 });
 
+// 19. Primeras evoluciones de Kanto habilitadas por defecto
+test('Colección Pokédex: Las 74 primeras evoluciones de Kanto están habilitadas en DB y Pokédex', () => {
+  assert.ok(Array.isArray(G.BASE_STAGE_DEX_KANTO), 'G.BASE_STAGE_DEX_KANTO debe ser un array');
+  assert.strictEqual(G.BASE_STAGE_DEX_KANTO.length, 74, `Se esperaban exactamente 74 primeras evoluciones, encontradas: ${G.BASE_STAGE_DEX_KANTO.length}`);
+
+  for (const dex of G.BASE_STAGE_DEX_KANTO) {
+    assert.ok(dex >= 1 && dex <= 150, `Dex ${dex} fuera del rango de Kanto`);
+    const mon = G.DEX_BY[dex];
+    assert.ok(mon, `Mon ${dex} no encontrado en G.DEX_BY`);
+    assert.strictEqual(mon.enabled, true, `Mon ${mon.name} (#${dex}) debe estar habilitado`);
+    assert.strictEqual(G.isBaseEvolution(dex), true, `Mon ${mon.name} (#${dex}) debe ser identificado como primera evolución`);
+  }
+
+  // Evoluciones y legendarios no deben estar en el array de primeras evoluciones
+  const evolvedAndLegendaries = [2, 3, 5, 6, 8, 9, 26, 94, 130, 144, 145, 146, 149, 150];
+  for (const dex of evolvedAndLegendaries) {
+    assert.strictEqual(G.isBaseEvolution(dex), false, `Dex ${dex} no debe ser primera evolución`);
+  }
+
+  // Comprobar que en partida de invitado / nueva partida están en save.owned
+  G.DB.playAsGuest();
+  assert.ok(G.DB.save, 'G.DB.save debe existir');
+  for (const dex of G.BASE_STAGE_DEX_KANTO) {
+    assert.strictEqual(G.DB.owns(dex), true, `El jugador debe poseer al Pokémon #${dex} (${G.DEX_BY[dex].name})`);
+  }
+
+  // Los evolucionados y legendarios deben permanecer bloqueados hasta obtenerse
+  for (const dex of evolvedAndLegendaries) {
+    assert.strictEqual(G.DB.owns(dex), false, `El Pokémon evolucionado #${dex} debe estar bloqueado inicialmente`);
+  }
+});
+
 console.log('\n===========================================');
 console.log(`RESULTADOS: ${passed} pasadas, ${failed} falladas.`);
 console.log('===========================================\n');

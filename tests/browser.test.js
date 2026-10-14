@@ -384,10 +384,50 @@ async function runBrowserTests() {
     await page.locator('#scr-menu [data-go="dex"]').click();
     await page.waitForTimeout(400);
     assert.strictEqual(await page.locator('#scr-dex').isVisible(), true, '#scr-dex debe abrirse');
+
+    // Verificar contador de primeras evoluciones desbloqueadas (al menos 74/150)
+    const dexTotalText = await page.locator('#dex-total').textContent();
+    console.log(`  Contador dentro de Pokédex: ${dexTotalText.trim()}`);
+    assert.ok(dexTotalText.includes('74 / 150') || parseInt(dexTotalText) >= 74, 'Deben haber 74 primeras evoluciones desbloqueadas');
+
+    // Verificar que Bulbasaur (#001) y Charmander (#004) están desbloqueados
+    const bulbaCell = page.locator('#dex-grid .cell:has-text("001")');
+    assert.strictEqual(await bulbaCell.evaluate(el => el.classList.contains('locked')), false, 'Bulbasaur no debe estar bloqueado');
+    const bulbaName = await bulbaCell.locator('b').textContent();
+    assert.strictEqual(bulbaName.trim(), 'Bulbasaur', 'El nombre de Bulbasaur debe ser visible');
+
+    const charCell = page.locator('#dex-grid .cell:has-text("004")');
+    assert.strictEqual(await charCell.evaluate(el => el.classList.contains('locked')), false, 'Charmander no debe estar bloqueado');
+
+    // Comprobar que una evolución (ej. Charizard #006) sigue bloqueada inicialmente
+    const charizardCell = page.locator('#dex-grid .cell:has-text("006")');
+    assert.strictEqual(await charizardCell.evaluate(el => el.classList.contains('locked')), true, 'Charizard debe estar bloqueado como evolución');
+    const charizardName = await charizardCell.locator('b').textContent();
+    assert.strictEqual(charizardName.trim(), '???', 'El nombre de Charizard debe ser ???');
+
+    await page.screenshot({ path: path.join(SCREENSHOTS_DIR, '06_dex_first_evolutions.png') });
+
+    // Seleccionar Charmander como compañero
+    await charCell.click();
+    await page.waitForTimeout(300);
+    const pickBtn = page.locator('#dex-pick');
+    if (await pickBtn.isVisible()) {
+      await pickBtn.click();
+      await page.waitForTimeout(400);
+      const partnerDex = await page.evaluate(() => G.DB.save.partner);
+      console.log(`  Compañero cambiado con éxito a #${partnerDex} (Charmander)`);
+      assert.strictEqual(partnerDex, 4, 'El compañero seleccionado debe ser Charmander (4)');
+    }
+
     await page.locator('#scr-dex [data-back]').click();
     await page.waitForTimeout(400);
     assert.strictEqual(await page.locator('#scr-dex').isVisible(), false, '#scr-dex debe cerrarse con botón Volver');
     assert.strictEqual(await page.locator('#scr-menu').isVisible(), true, '#scr-menu debe quedar visible');
+
+    // Verificar que el menú principal refleja el cambio de compañero
+    const newPartnerText = await page.locator('#menu-partner-name').textContent();
+    console.log(`  Nuevo compañero en menú principal: ${newPartnerText.trim()}`);
+    assert.ok(newPartnerText.includes('Charmander'), 'El menú principal debe mostrar a Charmander');
 
     // Reabrir Mundos para la prueba de combate
     await btnMundos.click();

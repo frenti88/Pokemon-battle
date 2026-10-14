@@ -975,10 +975,93 @@ G.DEX = [
   {"dex":1024,"name":"Terapagos","types":["normal"],"hp":110,"spd":103,"atk":1.06,"rarity":5,"bst":450,"starter":false,"gen":9,"leg":true},
 ];
 
+// Lista de todos los 74 Pokémon de primera etapa / primera evolución de Kanto (Gen 1)
+G.BASE_STAGE_DEX_KANTO = [
+  1,   // Bulbasaur
+  4,   // Charmander
+  7,   // Squirtle
+  10,  // Caterpie
+  13,  // Weedle
+  16,  // Pidgey
+  19,  // Rattata
+  21,  // Spearow
+  23,  // Ekans
+  25,  // Pikachu
+  27,  // Sandshrew
+  29,  // Nidoran♀
+  32,  // Nidoran♂
+  35,  // Clefairy
+  37,  // Vulpix
+  39,  // Jigglypuff
+  41,  // Zubat
+  43,  // Oddish
+  46,  // Paras
+  48,  // Venonat
+  50,  // Diglett
+  52,  // Meowth
+  54,  // Psyduck
+  56,  // Mankey
+  58,  // Growlithe
+  60,  // Poliwag
+  63,  // Abra
+  66,  // Machop
+  69,  // Bellsprout
+  72,  // Tentacool
+  74,  // Geodude
+  77,  // Ponyta
+  79,  // Slowpoke
+  81,  // Magnemite
+  83,  // Farfetch’d
+  84,  // Doduo
+  86,  // Seel
+  88,  // Grimer
+  90,  // Shellder
+  92,  // Gastly
+  95,  // Onix
+  96,  // Drowzee
+  98,  // Krabby
+  100, // Voltorb
+  102, // Exeggcute
+  104, // Cubone
+  106, // Hitmonlee
+  107, // Hitmonchan
+  108, // Lickitung
+  109, // Koffing
+  111, // Rhyhorn
+  113, // Chansey
+  114, // Tangela
+  115, // Kangaskhan
+  116, // Horsea
+  118, // Goldeen
+  120, // Staryu
+  122, // Mr. Mime
+  123, // Scyther
+  124, // Jynx
+  125, // Electabuzz
+  126, // Magmar
+  127, // Pinsir
+  128, // Tauros
+  129, // Magikarp
+  131, // Lapras
+  132, // Ditto
+  133, // Eevee
+  137, // Porygon
+  138, // Omanyte
+  140, // Kabuto
+  142, // Aerodactyl
+  143, // Snorlax
+  147  // Dratini
+];
+
+G.BASE_STAGE_SET_KANTO = new Set(G.BASE_STAGE_DEX_KANTO);
+G.isBaseEvolution = dex => G.BASE_STAGE_SET_KANTO.has(Number(dex));
+
 G.DEX_BY = {};
 for (const p of G.DEX) {
   p.enabled = p.dex >= 1 && p.dex <= 150;
   p.disabled = !p.enabled;
+  p.isBase = G.isBaseEvolution(p.dex);
+  p.baseStage = p.isBase;
   G.DEX_BY[p.dex] = p;
 }
 G.getPokemon = dex => G.DEX_BY[dex];
@@ -986,3 +1069,4 @@ G.isPokemonEnabled = dex => {
   const p = G.DEX_BY[dex];
   return !!(p && p.enabled && !p.disabled);
 };
+

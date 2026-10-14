@@ -54,14 +54,29 @@ G.DB = (() => {
 
   // ---------------- partida ----------------
 
+  /** Desbloquea todos los Pokémon de primera evolución de Kanto en la partida. */
+  function ensureBaseStageOwned(s) {
+    if (!s) return s;
+    s.owned = s.owned || {};
+    const baseList = G.BASE_STAGE_DEX_KANTO || [];
+    const now = s.created || Date.now();
+    for (let i = 0; i < baseList.length; i++) {
+      const d = baseList[i];
+      if (!s.owned[d]) {
+        s.owned[d] = { at: now, from: 'base_evolution' };
+      }
+    }
+    return s;
+  }
+
   function newSave(name) {
-    return {
+    const s = {
       v: VERSION,
       name,
       created: Date.now(),
       updated: Date.now(),    // última modificación (para fusionar)
       coins: START_COINS,
-      owned: {},              // dex -> { at, from: 'starter'|'gacha'|'wild' }
+      owned: {},              // dex -> { at, from: 'starter'|'gacha'|'wild'|'base_evolution' }
       shiny: {},              // dex -> { at, from } — variantes shiny conseguidas
       partner: null,          // dex del Pokémon con el que juegas
       partnerShiny: false,    // jugar con su versión shiny (si la tienes)
@@ -81,6 +96,8 @@ G.DB = (() => {
       stats: { runs: 0, bestTime: 0, bestLevel: 0, totalKills: 0, pulls: 0, coinsEarned: 0, shinies: 0,
                bossesTotal: 0, riftWins: 0, evolutions: 0, missionsDone: 0, groupRuns: 0, bestGroupTime: 0 }
     };
+    ensureBaseStageOwned(s);
+    return s;
   }
 
   /** Rellena campos que falten en partidas de versiones anteriores. */
@@ -88,6 +105,7 @@ G.DB = (() => {
     const base = newSave(name || s.name);
     for (const k in base) if (s[k] == null) s[k] = base[k];
     for (const k in base.stats) if (s.stats[k] == null) s.stats[k] = base.stats[k];
+    ensureBaseStageOwned(s);
     // v1 -> v2: había un único banner (Kanto) con el pity como número.
     if (typeof s.pity === 'number') s.pity = { 1: s.pity };
     // v2 -> v3: las mejoras eran de la cuenta; pasan al compañero de entonces.
@@ -152,6 +170,7 @@ G.DB = (() => {
     if (r.partner == null || !r.owned[r.partner]) { r.partner = older.partner; r.partnerShiny = older.partnerShiny; }
     r.created = Math.min(a.created || Date.now(), b.created || Date.now());
     r.updated = Math.max(a.updated || 0, b.updated || 0);
+    ensureBaseStageOwned(r);
     return r;
   }
 
@@ -190,7 +209,9 @@ G.DB = (() => {
 
   function loadLocal(k, name) {
     const s = read(K_SAVE + k);
-    return s ? migrate(s, name) : newSave(name);
+    const loaded = s ? migrate(s, name) : newSave(name);
+    ensureBaseStageOwned(loaded);
+    return loaded;
   }
 
   function beginLocal(k, name) {
@@ -548,6 +569,7 @@ G.DB = (() => {
   return {
     ready, register, login, loginWithGoogle, playAsGuest, logout, commit, deleteAccount, flush: pushNow,
     owns, grant, ownsShiny, grantShiny, merge, setName, upgradesOf,
+    ensureBaseStageOwned: () => ensureBaseStageOwned(save),
     onSync(fn) { listeners.add(fn); },
     onLeave(fn) { leaveHooks.push(fn); },
     /** Acceso de bajo nivel para los módulos de red (sólo en modo nube). */
